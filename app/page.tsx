@@ -32,7 +32,7 @@ export default function Home() {
         </nav>
         <div className="actions">
           <label className="search"><span>⌕</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="搜索书名或作者" /></label>
-          <button className="import" onClick={() => setImportOpen(true)}>＋ 导入微信内容</button>
+          <button className="import" onClick={() => setImportOpen(true)}>＋ 导入微信读书内容</button>
         </div>
       </header>
 
@@ -70,7 +70,7 @@ export default function Home() {
       <footer><span>枕书 · 私人阅读札记</span><i>愿每一次翻页，都能听见自己。</i><span>二〇二六</span></footer>
 
       {importOpen && <div className="modal" role="dialog" aria-modal="true" aria-labelledby="import-title" onMouseDown={(e) => e.target === e.currentTarget && setImportOpen(false)}>
-        <div className="dialog"><button className="close" aria-label="关闭" onClick={() => setImportOpen(false)}>×</button><span className="dialogEyebrow">WECHAT IMPORT</span><h2 id="import-title">把微信里的阅读痕迹带回来</h2><p>粘贴微信公众号文章链接，或直接粘贴原文与评论。连接微信 skill 后，这里也可以一键同步你的评论。</p><label>文章链接 / 原文<textarea placeholder="粘贴微信文章链接或正文……" /></label><label>我的评论<textarea placeholder="粘贴你在微信里的评论或读后感……" /></label><button className="save" onClick={() => setSaved(true)}>{saved ? "已保存到阅读札记 ✓" : "保存并生成阅读卡片"}</button><small>仅导入你有权保存与使用的内容。</small></div>
+        <div className="dialog"><button className="close" aria-label="关闭" onClick={() => setImportOpen(false)}>×</button><span className="dialogEyebrow">WECHAT READING IMPORT</span><h2 id="import-title">把微信读书里的阅读痕迹带回来</h2><p>目前暂无可直接连接微信读书的专用 skill。现阶段可粘贴书摘、想法或文章内容，保存为你的阅读卡片。</p><label>书摘 / 文章内容<textarea placeholder="粘贴微信读书书摘或文章正文……" /></label><label>我的想法<textarea placeholder="粘贴你在微信读书里的想法或读后感……" /></label><button className="save" onClick={() => setSaved(true)}>{saved ? "已保存到阅读札记 ✓" : "保存并生成阅读卡片"}</button><small>仅导入你有权保存与使用的内容。未来接入专用 skill 后可升级为自动同步。</small></div>
       </div>}
     </main>
   );
