@@ -9,9 +9,10 @@ import {
   paginationItems,
   shiftMonthKey,
 } from "./view-model.js";
+import { SYNC_TRIGGER_URL } from "./sync-config.js";
 
 const coverColors = ["#8f4038", "#315c4b", "#334867", "#b27332", "#6c4b3f", "#4f5e69"];
-const SHELF_PAGE_SIZE = 24;
+const SHELF_PAGE_SIZE = 6;
 const NOTES_PAGE_SIZE = 20;
 const state = {
   data: null,
@@ -21,6 +22,7 @@ const state = {
   notesPage: 1,
   calendarMonth: null,
   selectedDate: null,
+  syncing: false,
 };
 
 const elements = {
@@ -33,6 +35,7 @@ const elements = {
   overallCopy: document.querySelector("#overallCopy"),
   syncTime: document.querySelector("#syncTime"),
   continueReading: document.querySelector("#continueReading"),
+  actionsLink: document.querySelector("#actionsLink"),
   shelfPanel: document.querySelector("#shelfPanel"),
   notesPanel: document.querySelector("#notesPanel"),
   shelfHeading: document.querySelector("#shelfHeading"),
@@ -50,6 +53,17 @@ const elements = {
   calendarNext: document.querySelector("#calendarNext"),
   calendarAll: document.querySelector("#calendarAll"),
   searchInput: document.querySelector("#searchInput"),
+  syncModal: document.querySelector("#syncModal"),
+  syncClose: document.querySelector("#syncClose"),
+  syncMessage: document.querySelector("#syncMessage"),
+  syncForm: document.querySelector("#syncForm"),
+  syncKey: document.querySelector("#syncKey"),
+  syncSubmit: document.querySelector("#syncSubmit"),
+  syncStatus: document.querySelector("#syncStatus"),
+  syncStatusDot: document.querySelector("#syncStatusDot"),
+  syncStatusText: document.querySelector("#syncStatusText"),
+  syncStatusDetail: document.querySelector("#syncStatusDetail"),
+  syncRetry: document.querySelector("#syncRetry"),
 };
 
 function escapeHtml(value) {
@@ -259,6 +273,131 @@ function renderSummary() {
   if (latestBook?.link) elements.continueReading.href = latestBook.link;
 }
 
+function storedSyncKey() {
+  try {
+    return sessionStorage.getItem("zhenshu_sync_key") ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function saveSyncKey(key) {
+  try {
+    sessionStorage.setItem("zhenshu_sync_key", key);
+  } catch {
+    // Private browsing may disable sessionStorage; the current run still works.
+  }
+}
+
+function forgetSyncKey() {
+  try {
+    sessionStorage.removeItem("zhenshu_sync_key");
+  } catch {
+    // Ignore storage cleanup failures.
+  }
+}
+
+function setSyncStatus(text, detail, kind = "running") {
+  elements.syncStatus.hidden = false;
+  elements.syncStatusText.textContent = text;
+  elements.syncStatusDetail.textContent = detail;
+  elements.syncStatusDot.className = `syncStatusDot ${kind}`;
+}
+
+function showSyncForm() {
+  elements.syncForm.hidden = false;
+  elements.syncStatus.hidden = true;
+  elements.syncRetry.hidden = true;
+  elements.syncKey.value = "";
+  requestAnimationFrame(() => elements.syncKey.focus());
+}
+
+function showSyncError(message, canRetry = true) {
+  state.syncing = false;
+  elements.syncForm.hidden = true;
+  setSyncStatus("同步没有完成", message, "error");
+  elements.syncRetry.hidden = !canRetry;
+}
+
+async function responseJson(response) {
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.message ?? "同步服务暂时不可用。");
+  return body;
+}
+
+function wait(milliseconds) {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+async function runManualSync(key) {
+  if (state.syncing) return;
+  if (!SYNC_TRIGGER_URL) {
+    showSyncError("同步入口尚未配置，请稍后再试。", false);
+    return;
+  }
+
+  state.syncing = true;
+  elements.syncForm.hidden = true;
+  elements.syncRetry.hidden = true;
+  setSyncStatus("正在连接 GitHub", "正在提交同步任务…");
+  try {
+    const startResponse = await fetch(`${SYNC_TRIGGER_URL}/sync/start`, {
+      method: "POST",
+      headers: { "X-Sync-Key": key },
+    });
+    const start = await responseJson(startResponse);
+    saveSyncKey(key);
+    setSyncStatus("GitHub 已接收", "正在等待同步任务启动…");
+
+    const deadline = Date.now() + 10 * 60 * 1000;
+    while (Date.now() < deadline) {
+      await wait(2000);
+      const statusResponse = await fetch(`${SYNC_TRIGGER_URL}/sync/status?after=${encodeURIComponent(start.acceptedAt)}`, {
+        headers: { "X-Sync-Key": key },
+      });
+      const status = await responseJson(statusResponse);
+      if (status.status === "waiting") {
+        setSyncStatus("GitHub 已接收", "正在等待同步任务启动…");
+        continue;
+      }
+      if (status.status === "running") {
+        setSyncStatus("正在同步微信读书", "书架、进度、批注和统计正在更新…");
+        continue;
+      }
+      if (status.status === "failure" || status.status === "timeout") {
+        showSyncError(status.message ?? "同步没有完成，原有数据仍然保留。", true);
+        return;
+      }
+      if (status.status === "success") {
+        state.shelfPage = 1;
+        state.notesPage = 1;
+        await loadData(true);
+        state.syncing = false;
+        elements.syncForm.hidden = true;
+        setSyncStatus("同步完成", "最新数据已经更新到当前页面。", "success");
+        elements.syncRetry.hidden = false;
+        return;
+      }
+    }
+    showSyncError("等待时间较长，任务可能仍在后台运行；原有数据仍然保留。", true);
+  } catch (error) {
+    if (/口令|权限/.test(error?.message ?? "")) forgetSyncKey();
+    showSyncError(error?.message ?? "同步服务暂时不可用。", true);
+  }
+}
+
+function openSyncModal() {
+  elements.syncModal.hidden = false;
+  elements.syncMessage.textContent = "输入同步口令后，页面会留在这里等待同步完成。";
+  if (state.syncing) return;
+  const key = storedSyncKey();
+  if (key) {
+    void runManualSync(key);
+  } else {
+    showSyncForm();
+  }
+}
+
 function changePage(kind, requestedPage) {
   const isShelf = kind === "shelf";
   const key = isShelf ? "shelfPage" : "notesPage";
@@ -278,8 +417,9 @@ function handlePagination(event, kind) {
   changePage(kind, button.dataset.page);
 }
 
-async function loadData() {
-  const response = await fetch("./data/reading-room.json", { cache: "no-store" });
+async function loadData(cacheBust = false) {
+  const dataUrl = cacheBust ? `./data/reading-room.json?sync=${Date.now()}` : "./data/reading-room.json";
+  const response = await fetch(dataUrl, { cache: "no-store" });
   if (!response.ok) throw new Error("无法读取阅读数据。");
   state.data = await response.json();
   state.calendarMonth = latestNoteMonth(state.data.notes);
@@ -296,6 +436,23 @@ elements.searchInput.addEventListener("input", (event) => {
   state.shelfPage = 1;
   state.notesPage = 1;
   renderLists();
+});
+elements.actionsLink.addEventListener("click", openSyncModal);
+elements.syncClose.addEventListener("click", () => {
+  elements.syncModal.hidden = true;
+});
+elements.syncModal.addEventListener("mousedown", (event) => {
+  if (event.target === event.currentTarget && !state.syncing) elements.syncModal.hidden = true;
+});
+elements.syncForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const key = elements.syncKey.value.trim();
+  if (key) void runManualSync(key);
+});
+elements.syncRetry.addEventListener("click", () => {
+  const key = storedSyncKey();
+  if (key) void runManualSync(key);
+  else showSyncForm();
 });
 elements.shelfPagination.addEventListener("click", (event) => handlePagination(event, "shelf"));
 elements.notesPagination.addEventListener("click", (event) => handlePagination(event, "notes"));

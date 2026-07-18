@@ -146,3 +146,13 @@ Worker 测试覆盖：
 2. 再更新 GitHub Pages 前端中的 Worker URL 和同步面板。
 3. 推送 `main`，确认自动 workflow 成功。
 4. 完成一次页面内手动同步验收后，再将按钮作为正式入口保留。
+
+### GitHub/Cloudflare 配置
+
+Worker 部署工作流需要以下仓库 Secrets：
+
+- `CLOUDFLARE_API_TOKEN` 和 `CLOUDFLARE_ACCOUNT_ID`，供 `wrangler deploy` 使用。
+- `GITHUB_ACTIONS_TOKEN`，仅授予目标仓库 Actions 写权限的 fine-grained token。
+- `SYNC_TRIGGER_KEY`，页面同步面板中输入的口令。
+
+Worker 部署完成后，将它的 HTTPS 地址（不带末尾斜杠）设置为仓库变量 `SYNC_TRIGGER_URL`。Pages 工作流会在构建产物中写入该变量；源码中的 `sync-config.js` 保持空值，便于本地开发时明确提示尚未配置。

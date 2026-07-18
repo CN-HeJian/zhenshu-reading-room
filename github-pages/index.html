@@ -21,7 +21,7 @@
             <span>⌕</span>
             <input id="searchInput" placeholder="搜索书名或内容" autocomplete="off">
           </label>
-          <a class="import" id="actionsLink" href="./data/reading-room.json">同步状态</a>
+          <button class="import" id="actionsLink" type="button">↻ 手动同步</button>
         </div>
       </header>
 
@@ -90,6 +90,26 @@
         <span>枕书 · GitHub Pages</span><i>愿每一次翻页，都能听见自己。</i>
         <span id="syncTime">上次同步 · 尚未同步</span>
       </footer>
+
+      <div class="modal syncModal" id="syncModal" role="dialog" aria-modal="true" aria-labelledby="syncTitle" hidden>
+        <div class="dialog syncDialog">
+          <button class="close" id="syncClose" type="button" aria-label="关闭同步面板">×</button>
+          <span class="dialogEyebrow">GITHUB SYNC</span>
+          <h2 id="syncTitle">把最新阅读痕迹带回来</h2>
+          <p id="syncMessage">输入同步口令后，页面会留在这里等待同步完成。</p>
+          <form id="syncForm">
+            <label class="syncKeyLabel" for="syncKey">同步口令
+              <input id="syncKey" type="password" autocomplete="current-password" required>
+            </label>
+            <button class="syncSubmit" id="syncSubmit" type="submit">开始同步</button>
+          </form>
+          <div class="syncStatus" id="syncStatus" hidden>
+            <div class="syncStatusLine"><i id="syncStatusDot"></i><span id="syncStatusText">准备同步</span></div>
+            <small id="syncStatusDetail">GitHub 正在接收任务…</small>
+            <button class="syncSubmit" id="syncRetry" type="button" hidden>重新同步</button>
+          </div>
+        </div>
+      </div>
     </main>
     <script type="module" src="./assets/app.js"></script>
   </body>

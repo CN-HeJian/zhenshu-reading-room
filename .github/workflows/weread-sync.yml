@@ -47,6 +47,7 @@ jobs:
           tests/export-weread-data.test.mjs
           tests/github-pages-static.test.mjs
           tests/github-pages-view-model.test.mjs
+          tests/sync-worker.test.mjs
 
       - name: Export latest WeRead data
         env:
@@ -55,6 +56,11 @@ jobs:
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
+
+      - name: Configure inline sync trigger URL
+        env:
+          SYNC_TRIGGER_URL: ${{ vars.SYNC_TRIGGER_URL }}
+        run: node scripts/configure-sync-trigger.mjs
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3

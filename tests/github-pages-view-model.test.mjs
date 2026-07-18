@@ -11,15 +11,15 @@ import {
   toShanghaiDateKey,
 } from "../github-pages/assets/view-model.js";
 
-test("paginates the current 273-item shelf into 24-item pages", () => {
+test("paginates the current 273-item shelf into 6-item pages", () => {
   const items = Array.from({ length: 273 }, (_, index) => index + 1);
-  const first = paginate(items, 1, 24);
-  const last = paginate(items, 99, 24);
-  assert.equal(first.totalPages, 12);
-  assert.equal(first.items.length, 24);
-  assert.equal(last.page, 12);
-  assert.equal(last.items.length, 9);
-  assert.equal(last.items[0], 265);
+  const first = paginate(items, 1, 6);
+  const last = paginate(items, 99, 6);
+  assert.equal(first.totalPages, 46);
+  assert.equal(first.items.length, 6);
+  assert.equal(last.page, 46);
+  assert.equal(last.items.length, 3);
+  assert.equal(last.items[0], 271);
 });
 
 test("builds compact page number sequences", () => {
