@@ -1,98 +1,59 @@
-# vinext-starter
+# 枕书｜我的阅读札记
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+这是“枕书”的 GitHub Pages 版本。它不依赖 Codex 自动化、浏览器登录、Sites 私有访问控制、D1 或 Worker 定时器。
 
-## Prerequisites
+GitHub Actions 每天北京时间 23:30 直接调用微信读书网关，生成最新完整数据文件：
 
-- Node.js `>=22.13.0`
+```text
+github-pages/data/reading-room.json
+```
 
-## Quick Start
+GitHub Pages 发布 `github-pages/` 目录，静态页面读取这份 JSON 展示当前完整书架、阅读进度、划线、想法/点评和阅读统计。每次成功同步都会覆盖最新数据，不保留每日历史归档。
+
+## GitHub 配置
+
+1. 把本仓库推到 GitHub。
+2. 在仓库 Settings → Secrets and variables → Actions 中新增 secret：
+
+```text
+WEREAD_API_KEY
+```
+
+3. 在仓库 Settings → Pages 中把 Source 设置为 GitHub Actions。
+4. 到 Actions 页面手动运行 `WeRead GitHub Pages sync`，确认第一次同步和发布成功。
+
+之后 workflow 会每天 15:30 UTC 自动运行，也就是北京时间 23:30。
+
+## 本地命令
 
 ```bash
 npm install
-npm run dev
+npm test
+npm run lint
 npm run build
 ```
 
-This starter does not use `wrangler.jsonc`.
+本地验证静态页：
 
-## Included Shape
-
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-OpenAI workspace sites can read the current user's email from
-`oai-authenticated-user-email`.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```bash
+python3 -m http.server 4173 --directory github-pages
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+然后打开 `http://127.0.0.1:4173/`。
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
+如果本地环境设置了 `WEREAD_API_KEY`，可以手动导出一次最新数据：
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
+```bash
+npm run pages:export
+```
 
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
+## 数据安全
 
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
+- `WEREAD_API_KEY` 只存 GitHub Actions Secret。
+- 前端页面不会保存或请求微信读书密钥。
+- 同步脚本遇到微信读书 `upgrade_info` 会失败退出，不写入半成品数据。
+- GitHub Pages 静态站不能安全触发即时同步；需要立即同步时手动运行 GitHub Actions workflow。
 
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
+## 仍保留的 Sites 代码
 
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+仓库中仍保留之前的 Sites/D1 实现，方便回看或回滚旧版本；GitHub Pages workflow 不再调用这些接口。真正用于 GitHub Pages 发布的是 `github-pages/` 和 `scripts/export-weread-data.mjs`。
