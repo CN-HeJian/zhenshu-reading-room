@@ -1,0 +1,32 @@
+name: WeRead scheduled sync
+
+on:
+  schedule:
+    - cron: "30 15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: weread-scheduled-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run scheduled WeRead sync
+        env:
+          SITES_BASE_URL: ${{ secrets.SITES_BASE_URL }}
+          SYNC_AUTOMATION_TOKEN: ${{ secrets.SYNC_AUTOMATION_TOKEN }}
+        run: node scripts/run-weread-sync.mjs
