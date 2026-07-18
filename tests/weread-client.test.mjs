@@ -22,7 +22,7 @@ test("sends authorization and flat gateway parameters", async () => {
   assert.deepEqual(captured.body, {
     api_name: "/book/getprogress",
     bookId: "1",
-    skill_version: "1.0.3",
+    skill_version: "1.0.4",
   });
   assert.equal("params" in captured.body, false);
 });

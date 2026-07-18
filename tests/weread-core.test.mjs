@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  asDeepLink,
   buildGatewayBody,
-  buildWeReadLink,
   clampProgress,
   formatDate,
   formatDuration,
@@ -17,7 +17,7 @@ test("builds gateway payloads with flat parameters and the installed skill versi
     api_name: "/user/notebooks",
     count: 100,
     lastSort: 123,
-    skill_version: "1.0.3",
+    skill_version: "1.0.4",
   });
 });
 
@@ -38,12 +38,10 @@ test("formats seconds and timestamps for the Chinese UI", () => {
   assert.equal(formatDate(1_748_563_200), "2025-05-30");
 });
 
-test("creates deep links only when location data is valid", () => {
-  assert.equal(buildWeReadLink({ bookId: "3300045871" }), "weread://reading?bId=3300045871");
-  assert.equal(
-    buildWeReadLink({ bookId: "3300045871", chapterUid: 107, range: "900-2004" }),
-    "weread://bestbookmark?bookId=3300045871&chapterUid=107&rangeStart=900&rangeEnd=2004",
-  );
+test("uses only deep links returned by the API", () => {
+  assert.equal(asDeepLink("weread://official-link"), "weread://official-link");
+  assert.equal(asDeepLink(""), null);
+  assert.equal(asDeepLink(undefined), null);
 });
 
 test("calculates the latest 23:30 Asia/Shanghai schedule and catch-up state", () => {

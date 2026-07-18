@@ -1,10 +1,10 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   asInt,
+  asDeepLink,
   buildGatewayBody,
-  buildWeReadLink,
   clampProgress,
   totalNotebookNotes,
   visibleShelfCount,
@@ -90,7 +90,7 @@ function buildBookRecords(shelf, progressByBookId) {
       chapterUid: progressPayload.chapterUid === undefined ? null : String(progressPayload.chapterUid),
       chapterOffset: progressPayload.chapterOffset ?? null,
       finishTime: progress === 100 ? (progressPayload.finishTime ?? null) : null,
-      link: buildWeReadLink({ bookId: sourceId }),
+      link: asDeepLink(book.deepLink),
     });
   }
 
@@ -115,7 +115,7 @@ function buildBookRecords(shelf, progressByBookId) {
       chapterUid: null,
       chapterOffset: null,
       finishTime: null,
-      link: null,
+      link: asDeepLink(info.deepLink),
       trackCount: info.trackCount ?? null,
     });
   }
@@ -137,7 +137,7 @@ function buildBookRecords(shelf, progressByBookId) {
       chapterUid: null,
       chapterOffset: null,
       finishTime: null,
-      link: null,
+      link: asDeepLink(shelf.mp.deepLink),
     });
   }
 
@@ -171,7 +171,7 @@ function normalizeHighlights(bookId, bookTitle, highlightList) {
       createTime: item.createTime ?? null,
       range: item.range ?? null,
       colorStyle: item.colorStyle ?? null,
-      link: buildWeReadLink({ bookId, chapterUid: item.chapterUid, range: item.range }),
+      link: asDeepLink(item.deepLink),
     }));
 }
 
@@ -185,13 +185,14 @@ function normalizeReviews(bookId, bookTitle, reviews) {
       bookId,
       chapter: item.chapterName ?? null,
       chapterUid: item.chapterUid === undefined ? null : String(item.chapterUid),
-      quote: "",
+      chapterIdx: item.chapterIdx ?? null,
+      quote: item.abstract ?? "",
       note: item.content ?? "",
       createTime: item.createTime ?? null,
       range: item.range ?? null,
       star: item.star ?? null,
       isFinish: asInt(item.isFinish),
-      link: buildWeReadLink({ bookId, chapterUid: item.chapterUid, range: item.range }),
+      link: asDeepLink(item.deepLink),
     }));
 }
 
@@ -361,8 +362,14 @@ export class WeReadExporter {
 export async function writeExportedData(data, output = DEFAULT_OUTPUT) {
   const url = output instanceof URL ? output : pathToFileURL(output);
   const path = fileURLToPath(url);
+  const temporaryPath = `${path}.tmp-${process.pid}`;
   await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, `${JSON.stringify(data, null, 2)}\n`, "utf8");
+  try {
+    await writeFile(temporaryPath, `${JSON.stringify(data, null, 2)}\n`, "utf8");
+    await rename(temporaryPath, path);
+  } finally {
+    await rm(temporaryPath, { force: true });
+  }
 }
 
 export async function exportWeReadData({ apiKey = process.env.WEREAD_API_KEY, output = DEFAULT_OUTPUT, fetchImpl = fetch } = {}) {

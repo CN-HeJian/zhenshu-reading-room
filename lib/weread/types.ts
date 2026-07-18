@@ -1,5 +1,6 @@
 export type WeReadBook = {
   bookId?: string | number;
+  deepLink?: string;
   title?: string;
   author?: string;
   cover?: string;
@@ -14,6 +15,7 @@ export type WeReadBook = {
 export type WeReadAlbum = {
   albumInfo?: {
     albumId?: string | number;
+    deepLink?: string;
     name?: string;
     authorName?: string;
     cover?: string;
@@ -33,7 +35,7 @@ export type WeReadAlbum = {
 export type WeReadShelf = {
   books?: WeReadBook[];
   albums?: WeReadAlbum[];
-  mp?: Record<string, unknown> | null;
+  mp?: ({ deepLink?: string } & Record<string, unknown>) | null;
 };
 
 export type WeReadProgress = {
@@ -75,6 +77,7 @@ export type WeReadHighlight = {
   createTime?: number;
   range?: string;
   colorStyle?: number;
+  deepLink?: string;
 };
 
 export type HighlightList = {
@@ -88,10 +91,13 @@ export type WeReadReview = {
   chapterUid?: string | number;
   range?: string;
   content?: string;
+  abstract?: string;
   createTime?: number;
   star?: number;
   chapterName?: string;
+  chapterIdx?: number;
   isFinish?: number;
+  deepLink?: string;
 };
 
 export type ReviewPage = {

@@ -1,5 +1,4 @@
 import { getD1 } from "@/db";
-import { buildWeReadLink } from "@/lib/weread/core.mjs";
 import { getLastSuccessfulRun, getLatestRun } from "@/lib/sync/repository";
 import { publicSyncRun } from "@/lib/sync/orchestrator";
 
@@ -212,7 +211,7 @@ export async function getDashboardData(): Promise<DashboardData> {
               ? "正在读"
               : "未开始",
       readUpdateTime: row.read_update_time,
-      link: row.source_type === "book" ? buildWeReadLink({ bookId: row.source_id }) : null,
+      link: null,
     }));
     const notes = (noteResult.results ?? []).map((row) => ({
       id: row.id,
@@ -223,7 +222,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       quote: row.quote ?? "",
       note: row.note ?? "",
       createTime: row.create_time,
-      link: buildWeReadLink({ bookId: row.book_id, chapterUid: row.chapter_uid, range: row.range_value }),
+      link: null,
     }));
     const week = parsePeriod(weekRow, "weekly");
     const month = parsePeriod(monthRow, "monthly");

@@ -1,7 +1,7 @@
 "use client";
 
 import type { DashboardData, DashboardPeriod } from "@/lib/dashboard";
-import { buildWeReadLink, formatDate, formatDuration } from "@/lib/weread/core.mjs";
+import { formatDate, formatDuration } from "@/lib/weread/core.mjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type PublicRun = NonNullable<DashboardData["latestSync"]>;
@@ -219,7 +219,7 @@ export default function ReadingRoom({ initialData }: { initialData: DashboardDat
           <span>READING FOOTPRINT · 本周</span>
           <h2>{formatDuration(initialData.week.totalSeconds)}</h2>
           <p>{periodCopy(initialData.week)}。{initialData.week.topTitle ? `本周读得最多的是《${initialData.week.topTitle}》。` : "阅读数据会在同步后慢慢长成你的足迹。"}</p>
-          {latestBook?.sourceType === "book" && <a className="readingLink" href={buildWeReadLink({ bookId: latestBook.sourceId }) ?? undefined}>继续阅读　→</a>}
+          {latestBook?.link && <a className="readingLink" href={latestBook.link}>继续阅读　→</a>}
         </div>
         <blockquote>
           <b>“</b>近 30 天<br />{formatDuration(initialData.month.totalSeconds)}
