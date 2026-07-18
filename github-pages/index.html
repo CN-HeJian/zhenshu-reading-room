@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>枕书｜我的阅读札记</title>
+    <meta name="description" content="由 GitHub Actions 自动同步的私人微信读书札记。">
+    <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./assets/styles.css">
+  </head>
+  <body>
+    <main id="app">
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="枕书首页"><span>枕</span>书</a>
+        <nav aria-label="主导航">
+          <button class="active" data-tab="shelf">我的书架</button>
+          <button data-tab="notes">阅读批注</button>
+        </nav>
+        <div class="actions">
+          <label class="search">
+            <span>⌕</span>
+            <input id="searchInput" placeholder="搜索书名或内容" autocomplete="off">
+          </label>
+          <a class="import" id="actionsLink" href="./data/reading-room.json">同步状态</a>
+        </div>
+      </header>
+
+      <section class="hero" id="top">
+        <div class="eyebrow">MY READING ROOM · GITHUB PAGES</div>
+        <h1>书页之间，<br><em>安放自己的声音。</em></h1>
+        <p>这里展示 GitHub Actions 每天从微信读书同步回来的完整当前资料：书架、进度、划线、想法和阅读统计。</p>
+        <div class="stats">
+          <b><span id="shelfCount">0</span><small>个书架条目</small></b><i></i>
+          <b><span id="noteCount">0</span><small>条笔记</small></b><i></i>
+          <b><span id="overallTime">0分钟</span><small>累计阅读</small></b>
+        </div>
+        <div class="seal">读<br>书</div>
+      </section>
+
+      <section class="content" id="shelfPanel">
+        <div class="sectionHead">
+          <div><span>01 / SHELF</span><h2>我的书架</h2></div>
+          <button data-tab="notes">查看全部批注 →</button>
+        </div>
+        <div class="shelf" id="shelfList"></div>
+        <p class="empty" id="shelfEmpty" hidden>还没有同步到书架内容。</p>
+      </section>
+
+      <section class="content notesPage" id="notesPanel" hidden>
+        <div class="sectionHead">
+          <div><span>02 / MARGINALIA</span><h2>阅读批注</h2></div>
+          <button data-tab="shelf">← 返回书架</button>
+        </div>
+        <div class="notes" id="notesList"></div>
+        <p class="empty" id="notesEmpty" hidden>还没有同步到划线或想法。</p>
+      </section>
+
+      <section class="reading">
+        <div>
+          <span>READING FOOTPRINT · 本周</span>
+          <h2 id="weekTime">0分钟</h2>
+          <p id="weekCopy">同步后，这里会显示本周阅读足迹。</p>
+          <a class="readingLink" id="continueReading" hidden>继续阅读　→</a>
+        </div>
+        <blockquote>
+          <b>“</b>近 30 天<br><span id="monthTime">0分钟</span>
+          <small id="overallCopy">累计阅读 · 0分钟</small>
+        </blockquote>
+      </section>
+
+      <footer>
+        <span>枕书 · GitHub Pages</span><i>愿每一次翻页，都能听见自己。</i>
+        <span id="syncTime">上次同步 · 尚未同步</span>
+      </footer>
+    </main>
+    <script type="module" src="./assets/app.js"></script>
+  </body>
+</html>

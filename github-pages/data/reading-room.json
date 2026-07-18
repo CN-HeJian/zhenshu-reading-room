@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": null,
+  "generatedAtMs": null,
+  "status": "empty",
+  "summary": {
+    "shelfCount": 0,
+    "bookCount": 0,
+    "albumCount": 0,
+    "hasArticleCollection": false,
+    "progressCount": 0,
+    "notebookCount": 0,
+    "highlightCount": 0,
+    "reviewCount": 0,
+    "bookmarkCount": 0,
+    "noteCount": 0,
+    "overallSeconds": 0
+  },
+  "books": [],
+  "notebooks": [],
+  "notes": [],
+  "stats": {
+    "weekly": {
+      "mode": "weekly",
+      "totalSeconds": 0,
+      "readDays": 0,
+      "dayAverageSeconds": 0,
+      "compare": null,
+      "topTitle": null,
+      "readTimes": {},
+      "dailyReadTimes": {}
+    },
+    "monthly": {
+      "mode": "monthly",
+      "totalSeconds": 0,
+      "readDays": 0,
+      "dayAverageSeconds": 0,
+      "compare": null,
+      "topTitle": null,
+      "readTimes": {},
+      "dailyReadTimes": {}
+    },
+    "annually": {
+      "mode": "annually",
+      "totalSeconds": 0,
+      "readDays": 0,
+      "dayAverageSeconds": 0,
+      "compare": null,
+      "topTitle": null,
+      "readTimes": {},
+      "dailyReadTimes": {}
+    },
+    "overall": {
+      "mode": "overall",
+      "totalSeconds": 0,
+      "readDays": 0,
+      "dayAverageSeconds": 0,
+      "compare": null,
+      "topTitle": null,
+      "readTimes": {},
+      "dailyReadTimes": {}
+    }
+  }
+}
