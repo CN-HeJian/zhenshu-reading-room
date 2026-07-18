@@ -46,6 +46,7 @@ jobs:
           tests/weread-client.test.mjs
           tests/export-weread-data.test.mjs
           tests/github-pages-static.test.mjs
+          tests/github-pages-view-model.test.mjs
 
       - name: Export latest WeRead data
         env:

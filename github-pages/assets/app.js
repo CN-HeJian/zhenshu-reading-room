@@ -1,5 +1,27 @@
+import {
+  calendarMonth,
+  filterNotesByDate,
+  formatDateKeyLabel,
+  formatMonthLabel,
+  latestNoteMonth,
+  noteCountsByDate,
+  paginate,
+  paginationItems,
+  shiftMonthKey,
+} from "./view-model.js";
+
 const coverColors = ["#8f4038", "#315c4b", "#334867", "#b27332", "#6c4b3f", "#4f5e69"];
-const state = { data: null, tab: "shelf", query: "" };
+const SHELF_PAGE_SIZE = 24;
+const NOTES_PAGE_SIZE = 20;
+const state = {
+  data: null,
+  tab: "shelf",
+  query: "",
+  shelfPage: 1,
+  notesPage: 1,
+  calendarMonth: null,
+  selectedDate: null,
+};
 
 const elements = {
   shelfCount: document.querySelector("#shelfCount"),
@@ -13,10 +35,20 @@ const elements = {
   continueReading: document.querySelector("#continueReading"),
   shelfPanel: document.querySelector("#shelfPanel"),
   notesPanel: document.querySelector("#notesPanel"),
+  shelfHeading: document.querySelector("#shelfHeading"),
+  notesHeading: document.querySelector("#notesHeading"),
   shelfList: document.querySelector("#shelfList"),
   notesList: document.querySelector("#notesList"),
   shelfEmpty: document.querySelector("#shelfEmpty"),
   notesEmpty: document.querySelector("#notesEmpty"),
+  shelfPagination: document.querySelector("#shelfPagination"),
+  notesPagination: document.querySelector("#notesPagination"),
+  notesFilterSummary: document.querySelector("#notesFilterSummary"),
+  calendarTitle: document.querySelector("#calendarTitle"),
+  calendarGrid: document.querySelector("#calendarGrid"),
+  calendarPrev: document.querySelector("#calendarPrev"),
+  calendarNext: document.querySelector("#calendarNext"),
+  calendarAll: document.querySelector("#calendarAll"),
   searchInput: document.querySelector("#searchInput"),
 };
 
@@ -97,8 +129,10 @@ function filteredBooks() {
 function filteredNotes() {
   const keyword = state.query.trim().toLowerCase();
   const notes = state.data?.notes ?? [];
-  if (!keyword) return notes;
-  return notes.filter((note) => `${note.book}${note.quote}${note.note}${note.chapter}`.toLowerCase().includes(keyword));
+  const searched = keyword
+    ? notes.filter((note) => `${note.book}${note.quote}${note.note}${note.chapter}`.toLowerCase().includes(keyword))
+    : notes;
+  return filterNotesByDate(searched, state.selectedDate);
 }
 
 function renderBook(book, index) {
@@ -136,13 +170,74 @@ function renderNote(note, index) {
   </article>`;
 }
 
+function renderPagination(element, page, itemLabel) {
+  if (page.totalPages <= 1) {
+    element.hidden = true;
+    element.innerHTML = "";
+    return;
+  }
+
+  const pageButtons = paginationItems(page.page, page.totalPages).map((item) => {
+    if (item === "ellipsis") return '<span class="pageEllipsis" aria-hidden="true">…</span>';
+    const current = item === page.page;
+    return `<button type="button" data-page="${item}" ${current ? 'class="current" aria-current="page"' : ""} aria-label="第 ${item} 页">${item}</button>`;
+  }).join("");
+
+  element.hidden = false;
+  element.innerHTML = `<p>共 ${page.totalItems} ${itemLabel} · 第 ${page.page}/${page.totalPages} 页</p>
+    <div class="pageControls">
+      <button type="button" data-page="${page.page - 1}" ${page.page === 1 ? "disabled" : ""} aria-label="上一页">←</button>
+      ${pageButtons}
+      <button type="button" data-page="${page.page + 1}" ${page.page === page.totalPages ? "disabled" : ""} aria-label="下一页">→</button>
+    </div>`;
+}
+
+function emptyNotesMessage() {
+  if (!(state.data?.notes ?? []).length) return "还没有同步到划线或想法。";
+  if (state.selectedDate && state.query.trim()) return "这一天没有匹配当前搜索的批注。";
+  if (state.selectedDate) return "这一天没有批注。";
+  return "没有找到相关批注。";
+}
+
 function renderLists() {
-  const books = filteredBooks();
-  const notes = filteredNotes();
-  elements.shelfList.innerHTML = books.map(renderBook).join("");
-  elements.notesList.innerHTML = notes.map(renderNote).join("");
-  elements.shelfEmpty.hidden = books.length > 0;
-  elements.notesEmpty.hidden = notes.length > 0;
+  const books = paginate(filteredBooks(), state.shelfPage, SHELF_PAGE_SIZE);
+  const notes = paginate(filteredNotes(), state.notesPage, NOTES_PAGE_SIZE);
+  state.shelfPage = books.page;
+  state.notesPage = notes.page;
+
+  elements.shelfList.innerHTML = books.items.map((book, index) => renderBook(book, books.start + index)).join("");
+  elements.notesList.innerHTML = notes.items.map((note, index) => renderNote(note, notes.start + index)).join("");
+  elements.shelfEmpty.hidden = books.totalItems > 0;
+  elements.notesEmpty.hidden = notes.totalItems > 0;
+  if (!books.totalItems) {
+    elements.shelfEmpty.textContent = (state.data?.books ?? []).length
+      ? "没有找到这本书，换个关键词试试。"
+      : "还没有同步到书架内容。";
+  }
+  if (!notes.totalItems) elements.notesEmpty.textContent = emptyNotesMessage();
+
+  renderPagination(elements.shelfPagination, books, "本");
+  renderPagination(elements.notesPagination, notes, "条");
+  const filterLabel = state.selectedDate ? formatDateKeyLabel(state.selectedDate) : (state.query.trim() ? "搜索结果" : "全部批注");
+  elements.notesFilterSummary.textContent = `${filterLabel} · ${notes.totalItems} 条`;
+}
+
+function renderCalendar() {
+  if (!state.calendarMonth) return;
+  const notes = state.data?.notes ?? [];
+  const counts = noteCountsByDate(notes);
+  const cells = calendarMonth(state.calendarMonth, counts, state.selectedDate);
+  elements.calendarTitle.textContent = formatMonthLabel(state.calendarMonth);
+  elements.calendarAll.classList.toggle("active", !state.selectedDate);
+  elements.calendarAll.setAttribute("aria-pressed", String(!state.selectedDate));
+  elements.calendarGrid.innerHTML = cells.map((cell) => {
+    if (!cell) return '<span class="calendarBlank" aria-hidden="true"></span>';
+    const label = `${formatDateKeyLabel(cell.dateKey)}，${cell.count ? `${cell.count} 条批注` : "没有批注"}`;
+    return `<button type="button" class="calendarDay${cell.selected ? " selected" : ""}${cell.count ? " hasNotes" : ""}"
+      data-date="${cell.dateKey}" aria-label="${label}" aria-pressed="${cell.selected}" ${cell.count ? "" : "disabled"}>
+      <span>${cell.day}</span>${cell.count ? `<small>${cell.count}</small>` : ""}
+    </button>`;
+  }).join("");
 }
 
 function renderSummary() {
@@ -160,17 +255,36 @@ function renderSummary() {
 
   const latestBook = (data?.books ?? []).find((book) => book.sourceType === "book" && book.progress > 0 && book.progress < 100)
     ?? (data?.books ?? []).find((book) => book.sourceType === "book");
-  if (latestBook?.link) {
-    elements.continueReading.href = latestBook.link;
-    elements.continueReading.hidden = false;
-  }
+  elements.continueReading.hidden = !latestBook?.link;
+  if (latestBook?.link) elements.continueReading.href = latestBook.link;
+}
+
+function changePage(kind, requestedPage) {
+  const isShelf = kind === "shelf";
+  const key = isShelf ? "shelfPage" : "notesPage";
+  state[key] = Number(requestedPage);
+  renderLists();
+  const heading = isShelf ? elements.shelfHeading : elements.notesHeading;
+  const pagination = isShelf ? elements.shelfPagination : elements.notesPagination;
+  requestAnimationFrame(() => {
+    heading.scrollIntoView({ behavior: "smooth", block: "start" });
+    pagination.querySelector(`[data-page="${state[key]}"]`)?.focus({ preventScroll: true });
+  });
+}
+
+function handlePagination(event, kind) {
+  const button = event.target.closest("button[data-page]");
+  if (!button || button.disabled) return;
+  changePage(kind, button.dataset.page);
 }
 
 async function loadData() {
   const response = await fetch("./data/reading-room.json", { cache: "no-store" });
   if (!response.ok) throw new Error("无法读取阅读数据。");
   state.data = await response.json();
+  state.calendarMonth = latestNoteMonth(state.data.notes);
   renderSummary();
+  renderCalendar();
   renderLists();
 }
 
@@ -179,10 +293,38 @@ document.querySelectorAll("[data-tab]").forEach((button) => {
 });
 elements.searchInput.addEventListener("input", (event) => {
   state.query = event.target.value;
+  state.shelfPage = 1;
+  state.notesPage = 1;
+  renderLists();
+});
+elements.shelfPagination.addEventListener("click", (event) => handlePagination(event, "shelf"));
+elements.notesPagination.addEventListener("click", (event) => handlePagination(event, "notes"));
+elements.calendarPrev.addEventListener("click", () => {
+  state.calendarMonth = shiftMonthKey(state.calendarMonth, -1);
+  renderCalendar();
+});
+elements.calendarNext.addEventListener("click", () => {
+  state.calendarMonth = shiftMonthKey(state.calendarMonth, 1);
+  renderCalendar();
+});
+elements.calendarAll.addEventListener("click", () => {
+  state.selectedDate = null;
+  state.notesPage = 1;
+  renderCalendar();
+  renderLists();
+});
+elements.calendarGrid.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-date]");
+  if (!button || button.disabled) return;
+  state.selectedDate = state.selectedDate === button.dataset.date ? null : button.dataset.date;
+  state.notesPage = 1;
+  renderCalendar();
   renderLists();
 });
 
 loadData().catch((error) => {
   elements.shelfEmpty.hidden = false;
   elements.shelfEmpty.textContent = error.message;
+  elements.notesEmpty.hidden = false;
+  elements.notesEmpty.textContent = error.message;
 });

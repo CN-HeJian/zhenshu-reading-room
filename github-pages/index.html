@@ -38,21 +38,39 @@
       </section>
 
       <section class="content" id="shelfPanel">
-        <div class="sectionHead">
+        <div class="sectionHead" id="shelfHeading">
           <div><span>01 / SHELF</span><h2>我的书架</h2></div>
           <button data-tab="notes">查看全部批注 →</button>
         </div>
         <div class="shelf" id="shelfList"></div>
         <p class="empty" id="shelfEmpty" hidden>还没有同步到书架内容。</p>
+        <nav class="pagination" id="shelfPagination" aria-label="书架分页" hidden></nav>
       </section>
 
       <section class="content notesPage" id="notesPanel" hidden>
-        <div class="sectionHead">
+        <div class="sectionHead" id="notesHeading">
           <div><span>02 / MARGINALIA</span><h2>阅读批注</h2></div>
           <button data-tab="shelf">← 返回书架</button>
         </div>
+        <section class="calendarPanel" aria-labelledby="calendarTitle">
+          <div class="calendarToolbar">
+            <button class="calendarArrow" id="calendarPrev" type="button" aria-label="上一个月">←</button>
+            <div class="calendarHeading">
+              <span>NOTES CALENDAR</span>
+              <h3 id="calendarTitle">批注日历</h3>
+            </div>
+            <button class="calendarArrow" id="calendarNext" type="button" aria-label="下一个月">→</button>
+            <button class="calendarAll" id="calendarAll" type="button" aria-pressed="true">全部批注</button>
+          </div>
+          <div class="calendarWeekdays" aria-hidden="true">
+            <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+          </div>
+          <div class="calendarGrid" id="calendarGrid" role="group" aria-labelledby="calendarTitle"></div>
+        </section>
+        <p class="notesFilterSummary" id="notesFilterSummary">全部批注</p>
         <div class="notes" id="notesList"></div>
         <p class="empty" id="notesEmpty" hidden>还没有同步到划线或想法。</p>
+        <nav class="pagination" id="notesPagination" aria-label="批注分页" hidden></nav>
       </section>
 
       <section class="reading">
