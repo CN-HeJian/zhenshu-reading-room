@@ -54,7 +54,7 @@ function parsePeriod(mode, payload = {}) {
     totalSeconds: asInt(payload.totalReadTime),
     readDays: asInt(payload.readDays),
     dayAverageSeconds: asInt(payload.dayAverageReadTime),
-    compare: payload.compare === undefined || payload.compare === null ? null : Number(payload.compare) / 10_000,
+    compare: payload.compare === undefined || payload.compare === null ? null : Number(payload.compare),
     topTitle: readTopTitle(payload),
     readTimes: payload.readTimes ?? {},
     dailyReadTimes: payload.dailyReadTimes ?? {},

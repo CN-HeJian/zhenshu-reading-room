@@ -37,7 +37,7 @@ test("exports complete current WeRead data for GitHub Pages", async () => {
       totalReadTime: mode === "overall" ? 7200 : 600,
       readDays: 2,
       dayAverageReadTime: 300,
-      compare: 1000,
+      compare: 0.1,
       readLongest: [{ book: { title: "山月记" } }],
     });
   }
@@ -61,6 +61,7 @@ test("exports complete current WeRead data for GitHub Pages", async () => {
   assert.equal(data.books[0].progress, 37);
   assert.equal(data.notes.length, 2);
   assert.equal(data.stats.weekly.topTitle, "山月记");
+  assert.equal(data.stats.weekly.compare, 0.1);
   assert.deepEqual(bodies[0], buildGatewayBody("/shelf/sync"));
   assert.equal(bodies.every((body) => body.skill_version === "1.0.3"), true);
   assert.equal(bodies.find((body) => body.api_name === "/user/notebooks").count, 100);
