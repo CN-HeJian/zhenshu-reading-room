@@ -1,3 +1,4 @@
+# Sync the latest complete WeRead dataset and publish the static reading room.
 name: WeRead GitHub Pages sync
 
 on:
