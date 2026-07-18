@@ -40,7 +40,12 @@ jobs:
           node-version: "22"
 
       - name: Verify WeRead adapter
-        run: npm test
+        run: >-
+          node --experimental-strip-types --test
+          tests/weread-core.test.mjs
+          tests/weread-client.test.mjs
+          tests/export-weread-data.test.mjs
+          tests/github-pages-static.test.mjs
 
       - name: Export latest WeRead data
         env:
