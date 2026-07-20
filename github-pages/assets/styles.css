@@ -308,3 +308,101 @@ footer i { font-style: normal; }
   footer { justify-content: center; padding: 24px; }
   footer i, footer span:last-child { display: none; }
 }
+
+/* Compact two-column pass: keep the archive readable without the wide-open canvas. */
+.siteHeader { height: 68px; gap: 28px; padding-inline: max(18px, calc((100vw - 1120px) / 2)); }
+.mainNav { gap: 22px; }
+.mainNav button.active::after { bottom: 14px; }
+.headerTools { gap: 10px; }
+.searchBox { min-width: 190px; padding-block: 6px; }
+.viewPanel, footer { max-width: 1120px; }
+.masthead {
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  gap: 32px;
+  padding: 44px max(18px, 4.5vw) 34px;
+}
+.masthead h1 { margin: 12px 0 14px; font-size: clamp(42px, 5vw, 64px); }
+.mastheadCopy > p { max-width: 520px; font-size: 12px; line-height: 1.75; }
+.mastheadMeta { gap: 18px; margin-top: 18px; }
+.mastheadMark { width: 170px; }
+.mastheadMark i { height: 120px; }
+.mastheadMark span { font-size: 17px; }
+.statStrip { margin-inline: max(18px, 4.5vw); }
+.statStrip article { min-height: 92px; padding: 16px 20px; }
+.statStrip strong { margin: 7px 0 2px; font-size: 35px; }
+.archiveGrid { grid-template-columns: minmax(0, 1.55fr) minmax(245px, .72fr); gap: 18px; padding: 24px max(18px, 4.5vw) 38px; }
+.panelHeading { padding-bottom: 12px; }
+.panelHeading h2 { margin-top: 6px; font-size: 20px; }
+.timelinePreview { padding: 18px 20px 14px; }
+.timelineList::before { left: 73px; }
+.timelineItem { grid-template-columns: 98px minmax(0,1fr); gap: 12px; padding: 12px 0; }
+.timelineCard { padding: 13px 15px; }
+.timelineCard blockquote { margin: 9px 0 7px; font-size: 17px; line-height: 1.45; }
+.timelineCard p { margin: 8px 0; font-size: 11px; line-height: 1.65; }
+.noteFooter { margin-top: 8px; }
+.archiveRail { gap: 14px; }
+.miniCalendar, .currentReading { padding: 16px; }
+.miniWeekdays { margin-top: 12px; font-size: 9px; }
+.miniCalendarDay, .miniCalendarBlank { min-height: 27px; }
+.miniCalendarDay { font-size: 10px; }
+.miniCalendarDay.hasNotes::before { width: 23px; height: 21px; }
+.miniCalendarDay.hasNotes i { bottom: 0; width: 3px; height: 3px; }
+.calendarFoot { margin-top: 10px; padding-top: 9px; }
+.currentBookLink { grid-template-columns: 58px 1fr; gap: 10px; margin-top: 13px; }
+.currentBookInfo strong { font-size: 14px; }
+.currentBookCover { padding: 7px; font-size: 15px; }
+.activityBand { grid-template-columns: 1.65fr repeat(3, .82fr); gap: 12px; margin: 0 max(18px, 4.5vw) 38px; padding: 18px 20px; }
+.activityBand h2 { margin: 4px 0 2px; font-size: 19px; }
+.activityBand p { font-size: 10px; }
+.activityStat { padding-left: 13px; }
+.activityStat strong { margin-top: 4px; font-size: 19px; }
+.contentView { padding: 40px max(18px, 4.5vw) 56px; }
+.sectionIntro { margin-bottom: 24px; }
+.sectionIntro h1 { margin-top: 10px; font-size: clamp(42px, 5vw, 60px); }
+.shelf { gap: 14px; }
+.bookCard { padding: 9px; }
+.cover { padding: 12px; }
+.cover strong { font-size: clamp(18px, 2vw, 25px); }
+.bookMeta { padding-top: 10px; }
+.progress { margin-top: 9px; }
+.notesView .calendarPanel { margin-bottom: 18px; }
+.calendarToolbar { min-height: 58px; padding-inline: 12px; }
+.calendarHeading h2 { margin-top: 3px; font-size: 17px; }
+.calendarWeekdays { padding: 8px 0; font-size: 9px; }
+.calendarDay, .calendarBlank { min-height: 43px; }
+.calendarDay { padding: 7px 8px; font-size: 10px; }
+.calendarDay.hasNotes::after { left: 8px; bottom: 7px; width: 4px; height: 4px; }
+.calendarDay small { font-size: 9px; }
+.fullTimeline { max-width: none; }
+footer { padding: 20px max(18px, 4.5vw); }
+
+@media (max-width: 980px) {
+  .masthead { grid-template-columns: minmax(0, 1fr) 150px; }
+  .archiveGrid { grid-template-columns: minmax(0, 1.35fr) minmax(220px, .75fr); }
+  .archiveRail { grid-template-columns: 1fr; }
+  .activityBand { grid-template-columns: 1.4fr repeat(3, 1fr); }
+}
+
+@media (max-width: 680px) {
+  .siteHeader { height: 62px; gap: 10px; padding-inline: 14px; }
+  .masthead { display: block; padding: 30px 18px 22px; }
+  .masthead h1 { margin: 10px 0 12px; font-size: 43px; }
+  .mastheadCopy > p { font-size: 11px; }
+  .mastheadMark { display: none; }
+  .statStrip { margin-inline: 18px; }
+  .statStrip article { min-height: 72px; padding: 12px 15px; }
+  .statStrip strong { font-size: 30px; }
+  .archiveGrid { grid-template-columns: 1fr; gap: 12px; padding: 18px 14px 28px; }
+  .timelinePreview, .miniCalendar, .currentReading { padding: 15px 14px; }
+  .timelineList::before { left: 45px; }
+  .timelineItem, .compactItem { grid-template-columns: 62px minmax(0,1fr); gap: 8px; }
+  .timelineCard { padding: 11px 12px; }
+  .timelineCard blockquote { font-size: 15px; }
+  .archiveRail { gap: 12px; }
+  .activityBand { margin: 0 14px 28px; padding: 15px; }
+  .contentView { padding: 30px 14px 42px; }
+  .calendarToolbar { min-height: 50px; }
+  .calendarDay, .calendarBlank { min-height: 37px; }
+  .calendarDay { padding: 5px 6px; }
+}
