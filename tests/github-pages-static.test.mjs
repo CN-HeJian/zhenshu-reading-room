@@ -9,12 +9,18 @@ test("GitHub Pages site reads static data and leaves sync controls in GitHub Act
   const workflow = await readFile(new URL("../.github/workflows/weread-sync.yml", import.meta.url), "utf8");
 
   assert.match(html, /assets\/app\.js/);
+  assert.match(html, /id="overviewPanel"/);
+  assert.match(html, /id="overviewTimeline"/);
+  assert.match(html, /id="overviewCalendarGrid"/);
+  assert.match(html, /id="currentBook"/);
   assert.match(html, /id="shelfPagination"/);
   assert.match(html, /id="notesPagination"/);
   assert.match(html, /id="calendarGrid"/);
   assert.doesNotMatch(html, /手动同步|syncModal|syncForm|actionsLink/);
   assert.match(app, /\.\/view-model\.js/);
   assert.match(app, /data\/reading-room\.json/);
+  assert.match(app, /renderTimelineNote/);
+  assert.match(app, /searchedNotes/);
   assert.match(viewModel, /Asia\/Shanghai/);
   assert.doesNotMatch(html + app + viewModel + workflow, /\/api\/sync/);
   assert.doesNotMatch(workflow, /SITES_BASE_URL|SYNC_AUTOMATION_TOKEN|run-weread-sync/);

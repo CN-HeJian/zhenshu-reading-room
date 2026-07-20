@@ -4,92 +4,91 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>枕书｜我的阅读札记</title>
-    <meta name="description" content="由 GitHub Actions 自动同步的私人微信读书札记。">
+    <meta name="description" content="由 GitHub Actions 定时同步的私人微信读书阅读档案。">
     <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="./assets/styles.css">
   </head>
   <body>
     <main id="app">
-      <header class="topbar">
-        <a class="brand" href="#top" aria-label="枕书首页"><span>枕</span>书</a>
-        <nav aria-label="主导航">
-          <button class="active" data-tab="shelf">我的书架</button>
-          <button data-tab="notes">阅读批注</button>
+      <header class="siteHeader">
+        <a class="brand" href="#top" aria-label="枕书首页"><span>枕</span><strong>枕书</strong><small>READING ARCHIVE</small></a>
+        <nav class="mainNav" aria-label="主导航">
+          <button class="active" data-tab="overview">阅读档案</button>
+          <button data-tab="shelf">我的书架</button>
+          <button data-tab="notes">批注时间轴</button>
         </nav>
-        <div class="actions">
-          <label class="search">
-            <span>⌕</span>
-            <input id="searchInput" placeholder="搜索书名或内容" autocomplete="off">
-          </label>
+        <div class="headerTools">
+          <label class="searchBox"><span aria-hidden="true">⌕</span><input id="searchInput" placeholder="搜索书名、句子或章节" autocomplete="off"></label>
+          <span class="scheduleBadge"><i></i>每日 23:30 更新</span>
         </div>
       </header>
 
-      <section class="hero" id="top">
-        <div class="eyebrow">MY READING JOURNAL · WECHAT READS</div>
-        <h1>让思想在<br><em>纸上生长。</em></h1>
-        <p>这里收集你读过的句子、停留过的章节和未完的思考。慢一点，给每个好想法留一盏灯。</p>
-        <div class="stats">
-          <b><span id="shelfCount">0</span><small>个书架条目</small></b><i></i>
-          <b><span id="noteCount">0</span><small>条笔记</small></b><i></i>
-          <b><span id="overallTime">0分钟</span><small>累计阅读</small></b>
+      <section class="viewPanel overviewPanel" id="overviewPanel" aria-labelledby="overviewTitle">
+        <div class="masthead" id="top">
+          <div class="mastheadCopy">
+            <span class="archiveKicker">CHRONOLOGICAL ARCHIVE · 2026</span>
+            <h1 id="overviewTitle">把读过的事，<br><em>编成一条时间线。</em></h1>
+            <p>每一次翻页都留下坐标。沿着时间轴，回到那些让你停下来的句子、章节和夜晚。</p>
+            <div class="mastheadMeta"><span><b id="readingDays">—</b> 个阅读日</span><span>最近更新 · <b id="syncTime">尚未同步</b></span></div>
+          </div>
+          <div class="mastheadMark" aria-hidden="true"><span>枕<br>书</span><i></i><b></b></div>
         </div>
-        <div class="seal">读<br>书</div>
+
+        <div class="statStrip" aria-label="阅读总览">
+          <article><span>藏书与收藏</span><strong id="shelfCount">0</strong><small>书架里的全部坐标</small></article>
+          <article><span>条批注与划线</span><strong id="noteCount">0</strong><small>被你留住的瞬间</small></article>
+          <article><span>小时阅读时长</span><strong id="overallTime">0分钟</strong><small>累计专注时间</small></article>
+        </div>
+
+        <div class="archiveGrid">
+          <section class="timelinePreview panelCard" aria-labelledby="recentTitle">
+            <div class="panelHeading"><div><span class="panelKicker">RECENT MARKS</span><h2 id="recentTitle">最近发生的事</h2></div><button class="textButton" data-tab="notes">查看完整时间轴 →</button></div>
+            <div class="timelineList" id="overviewTimeline"></div>
+            <p class="empty compact" id="overviewEmpty" hidden>同步后，这里会出现你的阅读坐标。</p>
+          </section>
+          <aside class="archiveRail">
+            <section class="miniCalendar panelCard" aria-labelledby="overviewCalendarTitle">
+              <div class="panelHeading"><div><span class="panelKicker">MONTHLY TRACE</span><h2 id="overviewCalendarTitle">本月日历</h2></div><button class="textButton" data-tab="notes">打开日历 →</button></div>
+              <div class="miniWeekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+              <div class="miniCalendarGrid" id="overviewCalendarGrid" role="group" aria-labelledby="overviewCalendarTitle"></div>
+              <p class="calendarFoot" id="overviewCalendarFoot">— 天有批注</p>
+            </section>
+            <section class="currentReading panelCard" aria-labelledby="currentReadingTitle">
+              <div class="panelHeading"><div><span class="panelKicker">CURRENTLY READING</span><h2 id="currentReadingTitle">正在书桌上</h2></div></div>
+              <div id="currentBook"></div>
+            </section>
+          </aside>
+        </div>
+
+        <section class="activityBand" aria-labelledby="activityTitle">
+          <div><span class="panelKicker">READING FOOTPRINT</span><h2 id="activityTitle">阅读足迹</h2><p id="weekCopy">同步后，这里会显示本周阅读足迹。</p></div>
+          <div class="activityStat"><small>本周</small><strong id="weekTime">0分钟</strong></div>
+          <div class="activityStat"><small>近 30 天</small><strong id="monthTime">0分钟</strong></div>
+          <div class="activityStat"><small>累计</small><strong id="overallCopy">0分钟</strong></div>
+        </section>
       </section>
 
-      <section class="content" id="shelfPanel">
-        <div class="sectionHead" id="shelfHeading">
-          <div><span>01 / SHELF</span><h2>我的书架</h2></div>
-          <button data-tab="notes">查看全部批注 →</button>
-        </div>
+      <section class="viewPanel contentView" id="shelfPanel" hidden aria-labelledby="shelfTitle">
+        <div class="sectionIntro" id="shelfHeading"><div><span class="archiveKicker">01 / CURRENT SHELF</span><h1 id="shelfTitle">我的书架</h1><p>每一本书，都是一条还在延伸的路。</p></div><button class="textButton" data-tab="notes">查看批注时间轴 →</button></div>
         <div class="shelf" id="shelfList"></div>
         <p class="empty" id="shelfEmpty" hidden>还没有同步到书架内容。</p>
         <nav class="pagination" id="shelfPagination" aria-label="书架分页" hidden></nav>
       </section>
 
-      <section class="content notesPage" id="notesPanel" hidden>
-        <div class="sectionHead" id="notesHeading">
-          <div><span>02 / MARGINALIA</span><h2>阅读批注</h2></div>
-          <button data-tab="shelf">← 返回书架</button>
-        </div>
-        <section class="calendarPanel" aria-labelledby="calendarTitle">
-          <div class="calendarToolbar">
-            <button class="calendarArrow" id="calendarPrev" type="button" aria-label="上一个月">←</button>
-            <div class="calendarHeading">
-              <span>NOTES CALENDAR</span>
-              <h3 id="calendarTitle">批注日历</h3>
-            </div>
-            <button class="calendarArrow" id="calendarNext" type="button" aria-label="下一个月">→</button>
-            <button class="calendarAll" id="calendarAll" type="button" aria-pressed="true">全部批注</button>
-          </div>
-          <div class="calendarWeekdays" aria-hidden="true">
-            <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
-          </div>
+      <section class="viewPanel contentView notesView" id="notesPanel" hidden aria-labelledby="notesTitle">
+        <div class="sectionIntro" id="notesHeading"><div><span class="archiveKicker">02 / CHRONOLOGICAL MARGINALIA</span><h1 id="notesTitle">批注时间轴</h1><p>沿着日期回到那些让你停下来的地方。</p></div><button class="textButton" data-tab="shelf">← 回到书架</button></div>
+        <section class="calendarPanel panelCard" aria-labelledby="calendarTitle">
+          <div class="calendarToolbar"><button class="calendarArrow" id="calendarPrev" type="button" aria-label="上一个月">←</button><div class="calendarHeading"><span>MONTHLY TRACE</span><h2 id="calendarTitle">批注日历</h2></div><button class="calendarArrow" id="calendarNext" type="button" aria-label="下一个月">→</button><button class="calendarAll" id="calendarAll" type="button" aria-pressed="true">全部批注</button></div>
+          <div class="calendarWeekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
           <div class="calendarGrid" id="calendarGrid" role="group" aria-labelledby="calendarTitle"></div>
         </section>
-        <p class="notesFilterSummary" id="notesFilterSummary">全部批注</p>
-        <div class="notes" id="notesList"></div>
+        <p class="notesFilterSummary" id="notesFilterSummary">全部批注 · 0 条</p>
+        <div class="timelineList fullTimeline" id="notesList"></div>
         <p class="empty" id="notesEmpty" hidden>还没有同步到划线或想法。</p>
         <nav class="pagination" id="notesPagination" aria-label="批注分页" hidden></nav>
       </section>
 
-      <section class="reading">
-        <div>
-          <span>READING FOOTPRINT · 本周</span>
-          <h2 id="weekTime">0分钟</h2>
-          <p id="weekCopy">同步后，这里会显示本周阅读足迹。</p>
-          <a class="readingLink" id="continueReading" hidden>继续阅读　→</a>
-        </div>
-        <blockquote>
-          <b>“</b>近 30 天<br><span id="monthTime">0分钟</span>
-          <small id="overallCopy">累计阅读 · 0分钟</small>
-        </blockquote>
-      </section>
-
-      <footer>
-        <span>枕书 · GitHub Pages</span><i>愿每一次翻页，都能听见自己。</i>
-        <span id="syncTime">上次同步 · 尚未同步</span>
-      </footer>
-
+      <footer><span>枕书 · GitHub Pages</span><i>愿每一次翻页，都能听见自己。</i><span>数据每日 23:30 更新</span></footer>
     </main>
     <script type="module" src="./assets/app.js"></script>
   </body>
