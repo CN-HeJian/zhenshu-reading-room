@@ -383,6 +383,7 @@ footer { padding: 20px max(18px, 4.5vw); }
   .archiveGrid { grid-template-columns: minmax(0, 1.35fr) minmax(220px, .75fr); }
   .archiveRail { grid-template-columns: 1fr; }
   .activityBand { grid-template-columns: 1.4fr repeat(3, 1fr); }
+  .shelf { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 @media (max-width: 680px) {
