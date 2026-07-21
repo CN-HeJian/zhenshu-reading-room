@@ -15,6 +15,8 @@ const SHELF_PAGE_SIZE = 8;
 const NOTES_PAGE_SIZE = 20;
 const state = {
   data: null,
+  journey: null,
+  journeyHistory: null,
   tab: "overview",
   query: "",
   shelfPage: 1,
@@ -25,6 +27,7 @@ const state = {
 
 const elements = {
   overviewPanel: document.querySelector("#overviewPanel"),
+  journeyPanel: document.querySelector("#journeyPanel"),
   shelfPanel: document.querySelector("#shelfPanel"),
   notesPanel: document.querySelector("#notesPanel"),
   shelfCount: document.querySelector("#shelfCount"),
@@ -57,6 +60,20 @@ const elements = {
   calendarNext: document.querySelector("#calendarNext"),
   calendarAll: document.querySelector("#calendarAll"),
   searchInput: document.querySelector("#searchInput"),
+  journeyUnavailable: document.querySelector("#journeyUnavailable"),
+  journeyHero: document.querySelector("#journeyHero"),
+  journeyTitle: document.querySelector("#journeyTitle"),
+  journeyThesis: document.querySelector("#journeyThesis"),
+  journeyUpdated: document.querySelector("#journeyUpdated"),
+  journeyFocusCategory: document.querySelector("#journeyFocusCategory"),
+  journeyArc: document.querySelector("#journeyArc"),
+  journeyFocusName: document.querySelector("#journeyFocusName"),
+  journeyFocusBody: document.querySelector("#journeyFocusBody"),
+  journeyFocusShifts: document.querySelector("#journeyFocusShifts"),
+  journeyThemes: document.querySelector("#journeyThemes"),
+  journeyTurningPoints: document.querySelector("#journeyTurningPoints"),
+  journeyQuestions: document.querySelector("#journeyQuestions"),
+  journeyArchiveList: document.querySelector("#journeyArchiveList"),
 };
 
 function escapeHtml(value) {
@@ -127,9 +144,11 @@ function setTab(tab) {
     button.classList.toggle("active", button.dataset.tab === tab);
   });
   elements.overviewPanel.hidden = tab !== "overview";
+  elements.journeyPanel.hidden = tab !== "journey";
   elements.shelfPanel.hidden = tab !== "shelf";
   elements.notesPanel.hidden = tab !== "notes";
   if (tab === "overview") renderOverview();
+  if (tab === "journey") renderJourney();
   if (tab === "shelf" || tab === "notes") renderLists();
   requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
 }
@@ -186,6 +205,39 @@ function renderTimelineNote(note, index, compact = false) {
     <div class="timelineRail"><time>${date.short}</time><i></i></div>
     <div class="timelineCard"><div class="timelineMeta"><span>${escapeHtml(note.book)}${chapter}</span><small>${date.full}</small></div>${quote}${body}<div class="noteFooter"><small>#${kind}</small>${link}</div></div>
   </article>`;
+}
+
+function journeyEvidenceHint(ids = []) {
+  return ids.length ? '<small class="journeyEvidence">基于你的批注与阅读记录</small>' : "";
+}
+
+function renderJourney() {
+  const payload = state.journey;
+  const analysis = payload?.status === "ready" ? payload.analysis : null;
+  const history = Array.isArray(state.journeyHistory?.entries) ? state.journeyHistory.entries : [];
+  elements.journeyUnavailable.hidden = Boolean(analysis);
+  elements.journeyHero.hidden = !analysis;
+  if (!analysis) {
+    elements.journeyArchiveList.innerHTML = history.length
+      ? history.map((entry) => `<details class="journeyArchiveItem"><summary><time>${escapeHtml(entry.date)}</time><strong>${escapeHtml(entry.analysis?.title || "全程阅读心路")}</strong></summary><p>${escapeHtml(entry.analysis?.thesis || "")}</p></details>`).join("")
+      : '<p class="journeyEmpty">首次周度分析完成后，这里会出现历史归档。</p>';
+    return;
+  }
+  const focus = analysis.focusCategory || {};
+  elements.journeyTitle.textContent = analysis.title || "全程阅读心路";
+  elements.journeyThesis.textContent = analysis.thesis || "";
+  elements.journeyUpdated.textContent = formatSyncTime(analysis.generatedAt);
+  elements.journeyFocusCategory.textContent = focus.name || payload.focusCategory || "—";
+  elements.journeyArc.innerHTML = (analysis.arc || []).map((phase) => `<article class="journeyPhase"><div class="journeyPhaseRail"><span>${escapeHtml(phase.period)}</span><i></i></div><div><h3>${escapeHtml(phase.title)}</h3><p>${escapeHtml(phase.body)}</p>${journeyEvidenceHint(phase.evidenceIds)}</div></article>`).join("") || '<p class="journeyEmpty">目前还没有足够的历史证据形成阶段划分。</p>';
+  elements.journeyFocusName.textContent = focus.name || "—";
+  elements.journeyFocusBody.textContent = focus.body || "目前还没有足够证据分析这个类别的长期变化。";
+  elements.journeyFocusShifts.innerHTML = (focus.shifts || []).map((shift) => `<article><h3>${escapeHtml(shift.title)}</h3><p>${escapeHtml(shift.body)}</p>${journeyEvidenceHint(shift.evidenceIds)}</article>`).join("");
+  elements.journeyThemes.innerHTML = (analysis.enduringThemes || []).map((theme) => `<article><h3>${escapeHtml(theme.title)}</h3><p>${escapeHtml(theme.body)}</p>${journeyEvidenceHint(theme.evidenceIds)}</article>`).join("") || '<p class="journeyEmpty">长期主题还在形成中。</p>';
+  elements.journeyTurningPoints.innerHTML = (analysis.turningPoints || []).map((point) => `<article><h3>${escapeHtml(point.title)}</h3><p>${escapeHtml(point.body)}</p>${journeyEvidenceHint(point.evidenceIds)}</article>`).join("") || '<p class="journeyEmpty">目前还没有明确的转向记录。</p>';
+  elements.journeyQuestions.innerHTML = (analysis.openQuestions || []).map((question) => `<li>${escapeHtml(question)}</li>`).join("") || "<li>新的问题会随着阅读继续出现。</li>";
+  elements.journeyArchiveList.innerHTML = history.length
+    ? history.map((entry) => `<details class="journeyArchiveItem"${entry.id === payload.id ? " open" : ""}><summary><time>${escapeHtml(entry.date)}</time><strong>${escapeHtml(entry.analysis?.title || "全程阅读心路")}</strong></summary><p>${escapeHtml(entry.analysis?.thesis || "")}</p><div class="journeyArchiveArc">${(entry.analysis?.arc || []).slice(0, 4).map((phase) => `<div><b>${escapeHtml(phase.period)}</b><span>${escapeHtml(phase.title)}</span></div>`).join("")}</div></details>`).join("")
+    : '<p class="journeyEmpty">这是第一篇全程阅读心路，后续归档会按周出现。</p>';
 }
 
 function renderCurrentBook() {
@@ -314,10 +366,17 @@ async function loadData() {
   const response = await fetch("./data/reading-room.json", { cache: "no-store" });
   if (!response.ok) throw new Error("无法读取阅读数据。");
   state.data = await response.json();
+  const [journeyResponse, historyResponse] = await Promise.all([
+    fetch("./data/reading-journey.json", { cache: "no-store" }),
+    fetch("./data/reading-journey-history.json", { cache: "no-store" }),
+  ]);
+  state.journey = journeyResponse.ok ? await journeyResponse.json() : null;
+  state.journeyHistory = historyResponse.ok ? await historyResponse.json() : { entries: [] };
   state.calendarMonth = latestNoteMonth(state.data.notes);
   renderSummary();
   renderOverview();
   renderLists();
+  renderJourney();
 }
 
 document.querySelectorAll("[data-tab]").forEach((button) => button.addEventListener("click", () => setTab(button.dataset.tab)));

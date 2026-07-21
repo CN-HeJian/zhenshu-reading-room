@@ -10,6 +10,9 @@ test("GitHub Pages site reads static data and leaves sync controls in GitHub Act
 
   assert.match(html, /assets\/app\.js/);
   assert.match(html, /id="overviewPanel"/);
+  assert.match(html, /data-tab="journey"/);
+  assert.match(html, /id="journeyPanel"/);
+  assert.match(html, /id="journeyArchiveList"/);
   assert.match(html, /id="overviewTimeline"/);
   assert.match(html, /id="overviewCalendarGrid"/);
   assert.match(html, /id="currentBook"/);
@@ -24,6 +27,8 @@ test("GitHub Pages site reads static data and leaves sync controls in GitHub Act
   assert.match(app, /SHELF_PAGE_SIZE = 8/);
   assert.match(app, /class="coverImage"/);
   assert.match(app, /loading="lazy"/);
+  assert.match(app, /reading-journey\.json/);
+  assert.match(app, /renderJourney/);
   assert.match(viewModel, /Asia\/Shanghai/);
   assert.doesNotMatch(html + app + viewModel + workflow, /\/api\/sync/);
   assert.doesNotMatch(workflow, /SITES_BASE_URL|SYNC_AUTOMATION_TOKEN|run-weread-sync/);
@@ -31,4 +36,7 @@ test("GitHub Pages site reads static data and leaves sync controls in GitHub Act
   assert.match(workflow, /WEREAD_API_KEY/);
   assert.match(workflow, /workflow_dispatch/);
   assert.match(workflow, /30 15 \* \* \*/);
+  assert.match(workflow, /15 16 \* \* 0/);
+  assert.match(workflow, /DEEPSEEK_API_KEY/);
+  assert.match(workflow, /analyze-reading-journey\.mjs/);
 });

@@ -408,3 +408,64 @@ footer { padding: 20px max(18px, 4.5vw); }
   .calendarDay, .calendarBlank { min-height: 37px; }
   .calendarDay { padding: 5px 6px; }
 }
+
+.journeyView { padding-top: 34px; }
+.journeyNotice { margin: 0 0 24px; padding: 17px 20px; border: 1px dashed var(--line); color: var(--muted); font-size: 12px; background: rgba(251,250,245,.48); }
+.journeyHero { margin-bottom: 18px; padding: 24px 28px 20px; border: 1px solid var(--forest-2); color: var(--paper); background: var(--forest); }
+.journeyHero h2 { max-width: 760px; margin: 10px 0 12px; font: 400 clamp(30px,4vw,48px)/1.08 var(--serif); letter-spacing: -.045em; }
+.journeyHero > p { max-width: 820px; margin: 0; color: #d5e0d6; font: 16px/1.85 var(--serif); }
+.journeyMeta { display: flex; gap: 22px; margin-top: 19px; color: #a8c0af; font-size: 10px; }
+.journeyMeta b { color: var(--paper); }
+.journeyColumns { display: grid; grid-template-columns: minmax(0,1.38fr) minmax(260px,.62fr); gap: 18px; margin-bottom: 18px; }
+.journeyAside { display: grid; align-content: start; gap: 18px; }
+.journeySection { padding: 20px 22px; margin-bottom: 18px; }
+.journeyColumns .journeySection { margin-bottom: 0; }
+.journeyArc { position: relative; padding-top: 8px; }
+.journeyArc::before { content: ""; position: absolute; top: 17px; bottom: 18px; left: 83px; width: 1px; background: var(--line); }
+.journeyPhase { display: grid; grid-template-columns: 106px minmax(0,1fr); gap: 13px; position: relative; padding: 14px 0; }
+.journeyPhaseRail { display: flex; justify-content: space-between; gap: 8px; color: var(--amber); font: 11px var(--serif); }
+.journeyPhaseRail i { position: relative; z-index: 1; width: 9px; height: 9px; margin-top: 2px; border: 2px solid var(--amber); border-radius: 50%; background: var(--paper); }
+.journeyPhase h3, .journeyFocusShifts h3, .journeyThemes h3, .journeyTurningPoints h3 { margin: 0 0 7px; color: var(--forest); font: 700 17px/1.3 var(--serif); }
+.journeyPhase p, .journeyFocusBody, .journeyFocusShifts p, .journeyThemes p, .journeyTurningPoints p { margin: 0; color: #526159; font-size: 12px; line-height: 1.8; }
+.journeyEvidence { display: block; margin-top: 9px; color: var(--quiet); font-size: 9px; }
+.journeyFocusName { margin: 18px 0 8px; color: var(--forest); font: 700 24px var(--serif); }
+.journeyFocusShifts { margin-top: 17px; padding-top: 14px; border-top: 1px solid var(--line); }
+.journeyFocusShifts article, .journeyThemes article, .journeyTurningPoints article { padding: 11px 0; border-top: 1px solid rgba(211,210,199,.7); }
+.journeyFocusShifts article:first-child, .journeyThemes article:first-child, .journeyTurningPoints article:first-child { border-top: 0; }
+.journeyThemes h3 { font-size: 15px; }
+.journeyTurningPoints { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0 28px; }
+.journeyQuestions { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px 28px; margin: 0; padding-left: 19px; color: var(--forest-2); }
+.journeyQuestions li { padding-left: 5px; color: #526159; font: 15px/1.7 var(--serif); }
+.journeyArchiveSection { margin-bottom: 0; }
+.journeyArchiveItem { border-top: 1px solid var(--line); }
+.journeyArchiveItem:first-child { border-top: 0; }
+.journeyArchiveItem summary { display: grid; grid-template-columns: 100px minmax(0,1fr); gap: 12px; align-items: center; padding: 13px 0; color: var(--forest); cursor: pointer; list-style: none; }
+.journeyArchiveItem summary::-webkit-details-marker { display: none; }
+.journeyArchiveItem summary::after { content: "＋"; justify-self: end; color: var(--amber); }
+.journeyArchiveItem[open] summary::after { content: "－"; }
+.journeyArchiveItem summary time { color: var(--amber); font: 11px var(--serif); }
+.journeyArchiveItem summary strong { font: 700 15px var(--serif); }
+.journeyArchiveItem > p { max-width: 800px; margin: 0 0 12px 112px; color: #526159; font-size: 12px; line-height: 1.8; }
+.journeyArchiveArc { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin: 0 0 16px 112px; }
+.journeyArchiveArc div { padding: 8px 10px; border-left: 2px solid var(--sage); background: rgba(219,229,217,.3); }
+.journeyArchiveArc b, .journeyArchiveArc span { display: block; }
+.journeyArchiveArc b { color: var(--amber); font: 10px var(--serif); }
+.journeyArchiveArc span { margin-top: 4px; color: var(--forest-2); font-size: 10px; }
+.journeyEmpty { margin: 16px 0 4px; color: var(--muted); font-size: 12px; }
+
+@media (max-width: 780px) {
+  .journeyColumns { grid-template-columns: 1fr; }
+  .journeyTurningPoints, .journeyQuestions { grid-template-columns: 1fr; }
+  .journeyArchiveArc { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+
+@media (max-width: 680px) {
+  .journeyHero { padding: 18px 16px; }
+  .journeyHero > p { font-size: 14px; line-height: 1.7; }
+  .journeyMeta { flex-wrap: wrap; gap: 9px 15px; }
+  .journeySection { padding: 16px 14px; }
+  .journeyPhase { grid-template-columns: 70px minmax(0,1fr); gap: 9px; }
+  .journeyArc::before { left: 51px; }
+  .journeyArchiveItem summary { grid-template-columns: 80px minmax(0,1fr); }
+  .journeyArchiveItem > p, .journeyArchiveArc { margin-left: 92px; }
+}

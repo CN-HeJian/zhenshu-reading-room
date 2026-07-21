@@ -8,14 +8,16 @@ on:
       - ".github/workflows/weread-sync.yml"
       - "lib/weread/**"
       - "scripts/export-weread-data.mjs"
+      - "scripts/analyze-reading-journey.mjs"
       - "tests/**"
       - "github-pages/**"
   schedule:
     - cron: "30 15 * * *"
+    - cron: "15 16 * * 0"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -47,11 +49,32 @@ jobs:
           tests/export-weread-data.test.mjs
           tests/github-pages-static.test.mjs
           tests/github-pages-view-model.test.mjs
+          tests/reading-journey.test.mjs
 
       - name: Export latest WeRead data
         env:
           WEREAD_API_KEY: ${{ secrets.WEREAD_API_KEY }}
         run: node scripts/export-weread-data.mjs
+
+      - name: Generate lifelong reading journey
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '15 16 * * 0'
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_MODEL: deepseek-v4-pro
+        run: node scripts/analyze-reading-journey.mjs
+
+      - name: Persist reading journey archive
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '15 16 * * 0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add analysis-history github-pages/data/reading-journey.json github-pages/data/reading-journey-history.json
+          if git diff --cached --quiet; then
+            echo "没有新的阅读心路归档需要保存。"
+            exit 0
+          fi
+          git commit -m "chore: update lifelong reading journey [skip ci]"
+          git push
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
