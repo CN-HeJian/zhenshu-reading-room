@@ -9,6 +9,7 @@ on:
       - "lib/weread/**"
       - "scripts/export-weread-data.mjs"
       - "scripts/analyze-reading-journey.mjs"
+      - ".github/reading-journey-baseline.trigger"
       - "tests/**"
       - "github-pages/**"
   schedule:
@@ -57,14 +58,14 @@ jobs:
         run: node scripts/export-weread-data.mjs
 
       - name: Generate lifelong reading journey
-        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '15 16 * * 0'
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '15 16 * * 0' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[run-reading-journey]'))
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           DEEPSEEK_MODEL: deepseek-v4-pro
         run: node scripts/analyze-reading-journey.mjs
 
       - name: Persist reading journey archive
-        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '15 16 * * 0'
+        if: github.event_name == 'workflow_dispatch' || github.event.schedule == '15 16 * * 0' || (github.event_name == 'push' && contains(github.event.head_commit.message, '[run-reading-journey]'))
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
