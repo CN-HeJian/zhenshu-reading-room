@@ -70,24 +70,33 @@
       </section>
 
       <section class="viewPanel contentView journeyView" id="journeyPanel" hidden aria-labelledby="journeyTitle">
-        <div class="sectionIntro"><div><span class="archiveKicker">03 / LONG READING ARC</span><h1 id="journeySectionTitle">全程阅读心路</h1><p>不是最近一周的切面，而是从最早的批注到现在，持续重建你的阅读轨迹。</p></div><button class="textButton" data-tab="overview">← 回到阅读档案</button></div>
+        <div class="sectionIntro journeyIntro"><div><span class="archiveKicker">03 / LONG READING ARC</span><h1 id="journeySectionTitle">全程阅读心路</h1><p>不是最近一周的切面，而是从最早的批注到现在，持续重建你的阅读轨迹。</p></div><button class="textButton" data-tab="overview">← 回到阅读档案</button></div>
         <p class="journeyNotice" id="journeyUnavailable">第一次周度分析完成后，这里会出现你的全程阅读心路。</p>
-        <article class="journeyHero" id="journeyHero" hidden>
-          <span class="panelKicker">A LONG ARC, REBUILT FROM YOUR NOTES</span>
+        <article class="journeyHero journeyLead" id="journeyHero" hidden>
+          <div class="journeyLeadTop"><span class="panelKicker">A LONG ARC, REBUILT FROM YOUR NOTES</span><div class="journeyLeadStamp"><span>LONG<br>FORM</span></div></div>
           <h2 id="journeyTitle">全程阅读心路</h2>
           <p id="journeyThesis"></p>
           <div class="journeyMeta"><span>最近重建 · <b id="journeyUpdated">—</b></span><span>当前重点 · <b id="journeyFocusCategory">—</b></span></div>
         </article>
-        <div class="journeyColumns">
-          <section class="journeySection panelCard" aria-labelledby="journeyArcTitle"><div class="panelHeading"><div><span class="panelKicker">THE LONG ARC</span><h2 id="journeyArcTitle">从最早到现在</h2></div></div><div class="journeyArc" id="journeyArc"></div></section>
-          <aside class="journeyAside">
-            <section class="journeySection panelCard" aria-labelledby="journeyFocusTitle"><div class="panelHeading"><div><span class="panelKicker">FOCUS CATEGORY</span><h2 id="journeyFocusTitle">最爱类别</h2></div></div><h3 id="journeyFocusName">—</h3><p id="journeyFocusBody"></p><div class="journeyShifts" id="journeyFocusShifts"></div></section>
-            <section class="journeySection panelCard" aria-labelledby="journeyThemesTitle"><div class="panelHeading"><div><span class="panelKicker">ENDURING QUESTIONS</span><h2 id="journeyThemesTitle">反复出现的主题</h2></div></div><div class="journeyThemes" id="journeyThemes"></div></section>
-          </aside>
+
+        <section class="journeySection journeyStory" aria-labelledby="journeyArcTitle">
+          <div class="journeyChapterHeading"><span class="chapterIndex">01</span><div><span class="panelKicker">THE LONG ARC</span><h2 id="journeyArcTitle">从最早到现在</h2><p>把每一段阅读放回时间里，才能看见问题如何慢慢换了方向。</p></div></div>
+          <div class="journeyArc" id="journeyArc"></div>
+        </section>
+
+        <section class="journeySection journeyFocusSection" aria-labelledby="journeyFocusTitle">
+          <div class="journeyChapterHeading"><span class="chapterIndex">02</span><div><span class="panelKicker">FOCUS CATEGORY</span><h2 id="journeyFocusTitle">最爱类别的演化</h2><p>不是标签，而是一条不断修正自己的思考路径。</p></div></div>
+          <div class="journeyFocusHeader"><div><span class="journeyFocusLabel">CURRENT FOCUS</span><h3 id="journeyFocusName">—</h3></div><p id="journeyFocusBody"></p></div>
+          <div class="journeyShifts" id="journeyFocusShifts"></div>
+        </section>
+
+        <div class="journeyReflections">
+          <section class="journeySection journeyReflectionSection" aria-labelledby="journeyThemesTitle"><div class="journeyChapterHeading"><span class="chapterIndex">03</span><div><span class="panelKicker">ENDURING QUESTIONS</span><h2 id="journeyThemesTitle">反复出现的主题</h2></div></div><div class="journeyThemes" id="journeyThemes"></div></section>
+          <section class="journeySection journeyReflectionSection" aria-labelledby="journeyTurningTitle"><div class="journeyChapterHeading"><span class="chapterIndex">04</span><div><span class="panelKicker">TURNING POINTS</span><h2 id="journeyTurningTitle">发生过的转向</h2></div></div><div class="journeyTurningPoints" id="journeyTurningPoints"></div></section>
         </div>
-        <section class="journeySection panelCard" aria-labelledby="journeyTurningTitle"><div class="panelHeading"><div><span class="panelKicker">TURNING POINTS</span><h2 id="journeyTurningTitle">发生过的转向</h2></div></div><div class="journeyTurningPoints" id="journeyTurningPoints"></div></section>
-        <section class="journeySection panelCard" aria-labelledby="journeyQuestionsTitle"><div class="panelHeading"><div><span class="panelKicker">STILL OPEN</span><h2 id="journeyQuestionsTitle">仍在追问</h2></div></div><ul class="journeyQuestions" id="journeyQuestions"></ul></section>
-        <section class="journeySection journeyArchiveSection panelCard" aria-labelledby="journeyArchiveTitle"><div class="panelHeading"><div><span class="panelKicker">ARCHIVE</span><h2 id="journeyArchiveTitle">历史心路归档</h2></div></div><div class="journeyArchiveList" id="journeyArchiveList"></div></section>
+
+        <section class="journeySection journeyQuestionsSection" aria-labelledby="journeyQuestionsTitle"><div class="journeyChapterHeading"><span class="chapterIndex">05</span><div><span class="panelKicker">STILL OPEN</span><h2 id="journeyQuestionsTitle">仍在追问</h2><p>一份好阅读不会急着给出结论，它会留下下一次打开书的理由。</p></div></div><ul class="journeyQuestions" id="journeyQuestions"></ul></section>
+        <section class="journeySection journeyArchiveSection" aria-labelledby="journeyArchiveTitle"><div class="journeyChapterHeading"><span class="chapterIndex">06</span><div><span class="panelKicker">ARCHIVE</span><h2 id="journeyArchiveTitle">历史心路归档</h2><p>每周一篇，保留视角如何变化的痕迹。</p></div></div><div class="journeyArchiveList" id="journeyArchiveList"></div></section>
       </section>
 
       <section class="viewPanel contentView" id="shelfPanel" hidden aria-labelledby="shelfTitle">

@@ -231,7 +231,7 @@ function renderJourney() {
   elements.journeyArc.innerHTML = (analysis.arc || []).map((phase) => `<article class="journeyPhase"><div class="journeyPhaseRail"><span>${escapeHtml(phase.period)}</span><i></i></div><div><h3>${escapeHtml(phase.title)}</h3><p>${escapeHtml(phase.body)}</p>${journeyEvidenceHint(phase.evidenceIds)}</div></article>`).join("") || '<p class="journeyEmpty">目前还没有足够的历史证据形成阶段划分。</p>';
   elements.journeyFocusName.textContent = focus.name || "—";
   elements.journeyFocusBody.textContent = focus.body || "目前还没有足够证据分析这个类别的长期变化。";
-  elements.journeyFocusShifts.innerHTML = (focus.shifts || []).map((shift) => `<article><h3>${escapeHtml(shift.title)}</h3><p>${escapeHtml(shift.body)}</p>${journeyEvidenceHint(shift.evidenceIds)}</article>`).join("");
+  elements.journeyFocusShifts.innerHTML = (focus.shifts || []).map((shift, index) => `<article><span class="journeyShiftIndex">0${index + 1}</span><h3>${escapeHtml(shift.title)}</h3><p>${escapeHtml(shift.body)}</p>${journeyEvidenceHint(shift.evidenceIds)}</article>`).join("");
   elements.journeyThemes.innerHTML = (analysis.enduringThemes || []).map((theme) => `<article><h3>${escapeHtml(theme.title)}</h3><p>${escapeHtml(theme.body)}</p>${journeyEvidenceHint(theme.evidenceIds)}</article>`).join("") || '<p class="journeyEmpty">长期主题还在形成中。</p>';
   elements.journeyTurningPoints.innerHTML = (analysis.turningPoints || []).map((point) => `<article><h3>${escapeHtml(point.title)}</h3><p>${escapeHtml(point.body)}</p>${journeyEvidenceHint(point.evidenceIds)}</article>`).join("") || '<p class="journeyEmpty">目前还没有明确的转向记录。</p>';
   elements.journeyQuestions.innerHTML = (analysis.openQuestions || []).map((question) => `<li>${escapeHtml(question)}</li>`).join("") || "<li>新的问题会随着阅读继续出现。</li>";
