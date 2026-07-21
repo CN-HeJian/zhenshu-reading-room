@@ -11,7 +11,7 @@ import {
 } from "./view-model.js";
 
 const coverColors = ["#5d7779", "#a96754", "#5b718a", "#9a896c", "#6f806c", "#88706a"];
-const SHELF_PAGE_SIZE = 6;
+const SHELF_PAGE_SIZE = 8;
 const NOTES_PAGE_SIZE = 20;
 const state = {
   data: null,
@@ -159,11 +159,14 @@ function searchedNotes() {
 }
 
 function renderBook(book, index) {
-  const cover = book.cover ? `background-image:linear-gradient(180deg,#18130b10,#18130bc9),url("${cssUrl(book.cover)}")` : "";
   const href = book.link ? `href="${escapeHtml(book.link)}"` : "";
   const progress = Math.max(0, Math.min(100, Number(book.progress) || 0));
+  const coverImage = book.cover
+    ? `<img class="coverImage" src="${escapeHtml(book.cover)}" alt="${escapeHtml(book.title)}封面" loading="lazy" decoding="async" onerror="this.remove()">`
+    : "";
   return `<article class="bookCard">
-    <a class="cover${book.cover ? " hasCover" : ""}" ${href} style="background-color:${coverColors[index % coverColors.length]};${cover}">
+    <a class="cover${book.cover ? " hasCover" : ""}" ${href} aria-label="打开《${escapeHtml(book.title)}》" style="background-color:${coverColors[index % coverColors.length]};">
+      ${coverImage}
       <small>枕书藏本 · ${String(index + 1).padStart(2, "0")}</small>
       <strong>${escapeHtml(book.title)}</strong>
       <span>${escapeHtml(book.author || book.category || "微信读书")}</span>
