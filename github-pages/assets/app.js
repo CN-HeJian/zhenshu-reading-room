@@ -118,6 +118,8 @@ function dateParts(unixSeconds) {
 
 function formatSyncTime(value) {
   if (!value) return "尚未同步";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "尚未同步";
   return new Intl.DateTimeFormat("zh-CN", {
     timeZone: "Asia/Shanghai",
     month: "long",
@@ -125,12 +127,12 @@ function formatSyncTime(value) {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  }).format(new Date(value));
+  }).format(date);
 }
 
 function periodCopy(period = {}) {
   const compare = period.compare;
-  const comparison = compare === null || compare === undefined
+  const comparison = compare === null || compare === undefined || !Number.isFinite(Number(compare))
     ? ""
     : compare >= 0
       ? `，较上一周期增长 ${Math.round(compare * 100)}%`
@@ -200,7 +202,7 @@ function renderTimelineNote(note, index, compact = false) {
   const body = note.note ? `<p>${escapeHtml(note.note)}</p>` : "";
   const link = note.link ? `<a href="${escapeHtml(note.link)}">在微信读书中打开 →</a>` : "";
   const chapter = note.chapter ? ` · ${escapeHtml(note.chapter)}` : "";
-  const kind = note.kind === "highlight" ? "划线" : "想法";
+  const kind = note.kind === "highlight" ? "划线" : note.kind === "review" ? "评论" : note.kind === "bookmark" ? "书签" : "想法";
   return `<article class="timelineItem${compact ? " compactItem" : ""}">
     <div class="timelineRail"><time>${date.short}</time><i></i></div>
     <div class="timelineCard"><div class="timelineMeta"><span>${escapeHtml(note.book)}${chapter}</span><small>${date.full}</small></div>${quote}${body}<div class="noteFooter"><small>#${kind}</small>${link}</div></div>
@@ -208,7 +210,7 @@ function renderTimelineNote(note, index, compact = false) {
 }
 
 function journeyEvidenceHint(ids = []) {
-  return ids.length ? '<small class="journeyEvidence">基于你的批注与阅读记录</small>' : "";
+  return Array.isArray(ids) && ids.length ? '<small class="journeyEvidence">基于你的批注与阅读记录</small>' : "";
 }
 
 function renderJourney() {
@@ -336,7 +338,7 @@ function renderSummary() {
   elements.shelfCount.textContent = summary.shelfCount ?? 0;
   elements.noteCount.textContent = summary.noteCount ?? 0;
   elements.overallTime.textContent = formatDuration(summary.overallSeconds ?? stats.overall?.totalSeconds);
-  elements.readingDays.textContent = stats.monthly?.readDays ?? stats.weekly?.readDays ?? 0;
+  elements.readingDays.textContent = stats.overall?.readDays ?? stats.monthly?.readDays ?? stats.weekly?.readDays ?? 0;
   elements.syncTime.textContent = formatSyncTime(state.data?.generatedAtMs);
   elements.weekTime.textContent = formatDuration(stats.weekly?.totalSeconds);
   elements.monthTime.textContent = formatDuration(stats.monthly?.totalSeconds);
@@ -389,8 +391,15 @@ elements.searchInput.addEventListener("input", (event) => {
 });
 elements.shelfPagination.addEventListener("click", (event) => handlePagination(event, "shelf"));
 elements.notesPagination.addEventListener("click", (event) => handlePagination(event, "notes"));
-elements.calendarPrev.addEventListener("click", () => { state.calendarMonth = shiftMonthKey(state.calendarMonth, -1); renderCalendar(); });
-elements.calendarNext.addEventListener("click", () => { state.calendarMonth = shiftMonthKey(state.calendarMonth, 1); renderCalendar(); });
+function changeCalendarMonth(delta) {
+  state.calendarMonth = shiftMonthKey(state.calendarMonth, delta);
+  state.selectedDate = null;
+  state.notesPage = 1;
+  renderOverview();
+  renderLists();
+}
+elements.calendarPrev.addEventListener("click", () => changeCalendarMonth(-1));
+elements.calendarNext.addEventListener("click", () => changeCalendarMonth(1));
 elements.calendarAll.addEventListener("click", () => { state.selectedDate = null; state.notesPage = 1; renderCalendar(); renderOverview(); renderLists(); });
 elements.calendarGrid.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-date]");
