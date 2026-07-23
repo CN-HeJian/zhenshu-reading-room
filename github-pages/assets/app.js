@@ -40,6 +40,9 @@ const elements = {
   weekCopy: document.querySelector("#weekCopy"),
   monthTime: document.querySelector("#monthTime"),
   overallCopy: document.querySelector("#overallCopy"),
+  journeyTeaserTitle: document.querySelector("#journeyTeaserTitle"),
+  journeyTeaserText: document.querySelector("#journeyTeaserText"),
+  journeyTeaserMeta: document.querySelector("#journeyTeaserMeta"),
   overviewTimeline: document.querySelector("#overviewTimeline"),
   overviewEmpty: document.querySelector("#overviewEmpty"),
   overviewCalendarTitle: document.querySelector("#overviewCalendarTitle"),
@@ -215,6 +218,10 @@ function renderJourney() {
   const analysis = payload?.status === "ready" ? payload.analysis : null;
   const history = Array.isArray(state.journeyHistory?.entries) ? state.journeyHistory.entries : [];
   const archivedHistory = analysis ? history.filter((entry) => entry.id !== payload.id) : history;
+  const focus = analysis?.focusCategory || {};
+  elements.journeyTeaserTitle.textContent = analysis?.title || "全程阅读心路";
+  elements.journeyTeaserText.textContent = analysis?.thesis || "第一次全程分析完成后，这里会出现一段关于阅读变化的长期观察。";
+  elements.journeyTeaserMeta.textContent = analysis ? `当前重点 · ${focus.name || payload.focusCategory || "长期阅读变化"}` : "等待首次分析";
   elements.journeyUnavailable.hidden = Boolean(analysis);
   elements.journeyHero.hidden = !analysis;
   if (!analysis) {
@@ -223,7 +230,6 @@ function renderJourney() {
       : '<p class="journeyEmpty">首次周度分析完成后，这里会出现历史归档。</p>';
     return;
   }
-  const focus = analysis.focusCategory || {};
   elements.journeyTitle.textContent = analysis.title || "全程阅读心路";
   elements.journeyThesis.textContent = analysis.thesis || "";
   elements.journeyUpdated.textContent = formatSyncTime(analysis.generatedAt);

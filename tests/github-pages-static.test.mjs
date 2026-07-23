@@ -8,10 +8,14 @@ test("GitHub Pages site reads static data and leaves sync controls in GitHub Act
   const styles = await readFile(new URL("../github-pages/assets/styles.css", import.meta.url), "utf8");
   const viewModel = await readFile(new URL("../github-pages/assets/view-model.js", import.meta.url), "utf8");
   const workflow = await readFile(new URL("../.github/workflows/weread-sync.yml", import.meta.url), "utf8");
+  const mainNav = html.match(/<nav class="mainNav"[\s\S]*?<\/nav>/)?.[0] ?? "";
 
   assert.match(html, /assets\/app\.js/);
   assert.match(html, /id="overviewPanel"/);
   assert.match(html, /data-tab="journey"/);
+  assert.doesNotMatch(mainNav, /data-tab="journey"/);
+  assert.match(html, /id="journeyTeaser"/);
+  assert.match(html, /阅读完整心路/);
   assert.match(html, /id="journeyPanel"/);
   assert.match(html, /id="journeyArchiveList"/);
   assert.match(html, /id="overviewTimeline"/);
@@ -32,6 +36,7 @@ test("GitHub Pages site reads static data and leaves sync controls in GitHub Act
   assert.match(app, /loading="lazy"/);
   assert.match(app, /reading-journey\.json/);
   assert.match(app, /renderJourney/);
+  assert.match(app, /journeyTeaserTitle/);
   assert.match(app, /history\.filter\(\(entry\) => entry\.id !== payload\.id\)/);
   assert.match(app, /阅读数据暂时无法读取/);
   assert.match(app, /Array\.isArray\(state\.data\.books\)/);

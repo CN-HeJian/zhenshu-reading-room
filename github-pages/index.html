@@ -16,7 +16,6 @@
           <button class="active" data-tab="overview">阅读档案</button>
           <button data-tab="shelf">我的书架</button>
           <button data-tab="notes">批注时间轴</button>
-          <button data-tab="journey">全程心路</button>
         </nav>
         <div class="headerTools">
           <label class="searchBox"><span aria-hidden="true">⌕</span><input id="searchInput" placeholder="搜索书名、句子或章节" autocomplete="off"></label>
@@ -66,6 +65,11 @@
           <div class="activityStat"><small>本周</small><strong id="weekTime">0分钟</strong></div>
           <div class="activityStat"><small>近 30 天</small><strong id="monthTime">0分钟</strong></div>
           <div class="activityStat"><small>累计</small><strong id="overallCopy">0分钟</strong></div>
+        </section>
+
+        <section class="journeyTeaser panelCard" id="journeyTeaser" aria-labelledby="journeyTeaserTitle">
+          <div><span class="archiveKicker">03 / LONG READING ARC</span><h2 id="journeyTeaserTitle">全程阅读心路</h2><p id="journeyTeaserText">第一次全程分析完成后，这里会出现一段关于阅读变化的长期观察。</p><small id="journeyTeaserMeta">等待首次分析</small></div>
+          <button class="textButton" data-tab="journey">阅读完整心路 →</button>
         </section>
       </section>
 
