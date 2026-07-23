@@ -13,6 +13,7 @@ import {
 const coverColors = ["#5d7779", "#a96754", "#5b718a", "#9a896c", "#6f806c", "#88706a"];
 const SHELF_PAGE_SIZE = 8;
 const NOTES_PAGE_SIZE = 20;
+const DATA_UNAVAILABLE_MESSAGE = "阅读数据暂时无法读取，可能正在同步更新。请稍后刷新。";
 const state = {
   data: null,
   journey: null,
@@ -366,14 +367,29 @@ function handlePagination(event, kind) {
 
 async function loadData() {
   const response = await fetch("./data/reading-room.json", { cache: "no-store" });
-  if (!response.ok) throw new Error("无法读取阅读数据。");
-  state.data = await response.json();
+  if (!response.ok) throw new Error(DATA_UNAVAILABLE_MESSAGE);
+  try {
+    state.data = await response.json();
+  } catch {
+    throw new Error(DATA_UNAVAILABLE_MESSAGE);
+  }
+  if (!state.data || !Array.isArray(state.data.books) || !Array.isArray(state.data.notes)) {
+    throw new Error(DATA_UNAVAILABLE_MESSAGE);
+  }
   const [journeyResponse, historyResponse] = await Promise.all([
     fetch("./data/reading-journey.json", { cache: "no-store" }),
     fetch("./data/reading-journey-history.json", { cache: "no-store" }),
   ]);
-  state.journey = journeyResponse.ok ? await journeyResponse.json() : null;
-  state.journeyHistory = historyResponse.ok ? await historyResponse.json() : { entries: [] };
+  try {
+    state.journey = journeyResponse.ok ? await journeyResponse.json() : null;
+  } catch {
+    state.journey = null;
+  }
+  try {
+    state.journeyHistory = historyResponse.ok ? await historyResponse.json() : { entries: [] };
+  } catch {
+    state.journeyHistory = { entries: [] };
+  }
   state.calendarMonth = latestNoteMonth(state.data.notes);
   renderSummary();
   renderOverview();
@@ -421,10 +437,11 @@ elements.overviewCalendarGrid.addEventListener("click", (event) => {
 });
 
 loadData().catch((error) => {
+  const message = error?.message === DATA_UNAVAILABLE_MESSAGE ? error.message : DATA_UNAVAILABLE_MESSAGE;
   elements.overviewEmpty.hidden = false;
-  elements.overviewEmpty.textContent = error.message;
+  elements.overviewEmpty.textContent = message;
   elements.shelfEmpty.hidden = false;
-  elements.shelfEmpty.textContent = error.message;
+  elements.shelfEmpty.textContent = message;
   elements.notesEmpty.hidden = false;
-  elements.notesEmpty.textContent = error.message;
+  elements.notesEmpty.textContent = message;
 });

@@ -29,6 +29,8 @@ test("GitHub Pages site reads static data and leaves sync controls in GitHub Act
   assert.match(app, /loading="lazy"/);
   assert.match(app, /reading-journey\.json/);
   assert.match(app, /renderJourney/);
+  assert.match(app, /阅读数据暂时无法读取/);
+  assert.match(app, /Array\.isArray\(state\.data\.books\)/);
   assert.match(viewModel, /Asia\/Shanghai/);
   assert.doesNotMatch(html + app + viewModel + workflow, /\/api\/sync/);
   assert.doesNotMatch(workflow, /SITES_BASE_URL|SYNC_AUTOMATION_TOKEN|run-weread-sync/);
