@@ -5,6 +5,7 @@ import test from "node:test";
 test("GitHub Pages site reads static data and leaves sync controls in GitHub Actions", async () => {
   const html = await readFile(new URL("../github-pages/index.html", import.meta.url), "utf8");
   const app = await readFile(new URL("../github-pages/assets/app.js", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../github-pages/assets/styles.css", import.meta.url), "utf8");
   const viewModel = await readFile(new URL("../github-pages/assets/view-model.js", import.meta.url), "utf8");
   const workflow = await readFile(new URL("../.github/workflows/weread-sync.yml", import.meta.url), "utf8");
 
@@ -26,12 +27,16 @@ test("GitHub Pages site reads static data and leaves sync controls in GitHub Act
   assert.match(app, /searchedNotes/);
   assert.match(app, /SHELF_PAGE_SIZE = 8/);
   assert.match(app, /class="coverImage"/);
+  assert.match(app, /class="coverFallback"/);
+  assert.match(app, /class="currentBookImage"/);
   assert.match(app, /loading="lazy"/);
   assert.match(app, /reading-journey\.json/);
   assert.match(app, /renderJourney/);
+  assert.match(app, /history\.filter\(\(entry\) => entry\.id !== payload\.id\)/);
   assert.match(app, /阅读数据暂时无法读取/);
   assert.match(app, /Array\.isArray\(state\.data\.books\)/);
   assert.match(viewModel, /Asia\/Shanghai/);
+  assert.match(styles, /\.cover\.hasCover \.coverFallback/);
   assert.doesNotMatch(html + app + viewModel + workflow, /\/api\/sync/);
   assert.doesNotMatch(workflow, /SITES_BASE_URL|SYNC_AUTOMATION_TOKEN|run-weread-sync/);
   assert.match(workflow, /actions\/deploy-pages@v4/);

@@ -87,10 +87,6 @@ function escapeHtml(value) {
   }[char]));
 }
 
-function cssUrl(value) {
-  return String(value ?? "").replace(/[\\")\n\r]/g, "");
-}
-
 function formatDuration(totalSeconds) {
   const seconds = Math.max(0, Number.parseInt(totalSeconds ?? 0, 10) || 0);
   const hours = Math.floor(seconds / 3600);
@@ -184,14 +180,14 @@ function renderBook(book, index) {
   const href = book.link ? `href="${escapeHtml(book.link)}"` : "";
   const progress = Math.max(0, Math.min(100, Number(book.progress) || 0));
   const coverImage = book.cover
-    ? `<img class="coverImage" src="${escapeHtml(book.cover)}" alt="${escapeHtml(book.title)}封面" loading="lazy" decoding="async" onerror="this.remove()">`
+    ? `<img class="coverImage" src="${escapeHtml(book.cover)}" alt="${escapeHtml(book.title)}封面" loading="lazy" decoding="async" onerror="this.remove(); this.parentElement.classList.remove('hasCover')">`
     : "";
   return `<article class="bookCard">
     <a class="cover${book.cover ? " hasCover" : ""}" ${href} aria-label="打开《${escapeHtml(book.title)}》" style="background-color:${coverColors[index % coverColors.length]};">
       ${coverImage}
-      <small>枕书藏本 · ${String(index + 1).padStart(2, "0")}</small>
-      <strong>${escapeHtml(book.title)}</strong>
-      <span>${escapeHtml(book.author || book.category || "微信读书")}</span>
+      <small class="coverFallback">枕书藏本 · ${String(index + 1).padStart(2, "0")}</small>
+      <strong class="coverFallback">${escapeHtml(book.title)}</strong>
+      <span class="coverFallback">${escapeHtml(book.author || book.category || "微信读书")}</span>
     </a>
     <div class="bookMeta"><span>${escapeHtml(book.status)}</span><b>${escapeHtml(book.title)}</b><small>${escapeHtml(book.author || book.category || "微信读书")}</small><div class="progress"><i style="width:${progress}%"></i></div><em>${progress}%</em></div>
   </article>`;
@@ -218,6 +214,7 @@ function renderJourney() {
   const payload = state.journey;
   const analysis = payload?.status === "ready" ? payload.analysis : null;
   const history = Array.isArray(state.journeyHistory?.entries) ? state.journeyHistory.entries : [];
+  const archivedHistory = analysis ? history.filter((entry) => entry.id !== payload.id) : history;
   elements.journeyUnavailable.hidden = Boolean(analysis);
   elements.journeyHero.hidden = !analysis;
   if (!analysis) {
@@ -238,9 +235,9 @@ function renderJourney() {
   elements.journeyThemes.innerHTML = (analysis.enduringThemes || []).map((theme) => `<article><h3>${escapeHtml(theme.title)}</h3><p>${escapeHtml(theme.body)}</p>${journeyEvidenceHint(theme.evidenceIds)}</article>`).join("") || '<p class="journeyEmpty">长期主题还在形成中。</p>';
   elements.journeyTurningPoints.innerHTML = (analysis.turningPoints || []).map((point) => `<article><h3>${escapeHtml(point.title)}</h3><p>${escapeHtml(point.body)}</p>${journeyEvidenceHint(point.evidenceIds)}</article>`).join("") || '<p class="journeyEmpty">目前还没有明确的转向记录。</p>';
   elements.journeyQuestions.innerHTML = (analysis.openQuestions || []).map((question) => `<li>${escapeHtml(question)}</li>`).join("") || "<li>新的问题会随着阅读继续出现。</li>";
-  elements.journeyArchiveList.innerHTML = history.length
-    ? history.map((entry) => `<details class="journeyArchiveItem"${entry.id === payload.id ? " open" : ""}><summary><time>${escapeHtml(entry.date)}</time><strong>${escapeHtml(entry.analysis?.title || "全程阅读心路")}</strong></summary><p>${escapeHtml(entry.analysis?.thesis || "")}</p><div class="journeyArchiveArc">${(entry.analysis?.arc || []).slice(0, 4).map((phase) => `<div><b>${escapeHtml(phase.period)}</b><span>${escapeHtml(phase.title)}</span></div>`).join("")}</div></details>`).join("")
-    : '<p class="journeyEmpty">这是第一篇全程阅读心路，后续归档会按周出现。</p>';
+  elements.journeyArchiveList.innerHTML = archivedHistory.length
+    ? archivedHistory.map((entry) => `<details class="journeyArchiveItem"><summary><time>${escapeHtml(entry.date)}</time><strong>${escapeHtml(entry.analysis?.title || "全程阅读心路")}</strong></summary><p>${escapeHtml(entry.analysis?.thesis || "")}</p><div class="journeyArchiveArc">${(entry.analysis?.arc || []).slice(0, 4).map((phase) => `<div><b>${escapeHtml(phase.period)}</b><span>${escapeHtml(phase.title)}</span></div>`).join("")}</div></details>`).join("")
+    : '<p class="journeyEmpty">当前分析已展示在上方，下一次分析后这里会出现上一期归档。</p>';
 }
 
 function renderCurrentBook() {
@@ -253,9 +250,11 @@ function renderCurrentBook() {
     return;
   }
   const progress = Math.max(0, Math.min(100, Number(book.progress) || 0));
-  const cover = book.cover ? `background-image:linear-gradient(180deg,#17251d18,#17251dcc),url("${cssUrl(book.cover)}")` : "";
+  const coverImage = book.cover
+    ? `<img class="currentBookImage" src="${escapeHtml(book.cover)}" alt="${escapeHtml(book.title)}封面" loading="lazy" decoding="async" onerror="this.remove()">`
+    : "";
   const href = book.link ? `href="${escapeHtml(book.link)}"` : "";
-  elements.currentBook.innerHTML = `<a class="currentBookLink" ${href}><span class="currentBookCover" style="background-color:${coverColors[0]};${cover}"><b>${escapeHtml(book.title?.slice(0, 2) ?? "书")}</b></span><span class="currentBookInfo"><strong>${escapeHtml(book.title)}</strong><small>${escapeHtml(book.author || book.category || "微信读书")}</small><span class="currentProgress"><i style="width:${progress}%"></i></span><em>阅读至 ${progress}%</em></span></a>`;
+  elements.currentBook.innerHTML = `<a class="currentBookLink" ${href}><span class="currentBookCover" style="background-color:${coverColors[0]};">${coverImage}<b>${escapeHtml(book.title?.slice(0, 2) ?? "书")}</b></span><span class="currentBookInfo"><strong>${escapeHtml(book.title)}</strong><small>${escapeHtml(book.author || book.category || "微信读书")}</small><span class="currentProgress"><i style="width:${progress}%"></i></span><em>阅读至 ${progress}%</em></span></a>`;
 }
 
 function renderMiniCalendar() {
