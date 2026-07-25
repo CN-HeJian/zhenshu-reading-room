@@ -16,6 +16,7 @@ test("GitHub Pages site reads static data and leaves sync controls in GitHub Act
   assert.match(mainNav, /data-tab="journey"/);
   assert.doesNotMatch(html, /id="journeyTeaser"/);
   assert.match(html, /id="journeyPanel"/);
+  assert.doesNotMatch(html, /id="journeyHero"|从感性漫游到理性深耕/);
   assert.match(html, /id="journeyArchiveList"/);
   assert.match(html, /class="visitorStats"/);
   assert.match(html, /counterapi\.com\/c\.js\?ns=zhenshu-reading-room/);

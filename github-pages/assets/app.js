@@ -41,11 +41,6 @@ const elements = {
   monthTime: document.querySelector("#monthTime"),
   overallCopy: document.querySelector("#overallCopy"),
   journeyUnavailable: document.querySelector("#journeyUnavailable"),
-  journeyHero: document.querySelector("#journeyHero"),
-  journeyTitle: document.querySelector("#journeyTitle"),
-  journeyThesis: document.querySelector("#journeyThesis"),
-  journeyUpdated: document.querySelector("#journeyUpdated"),
-  journeyFocusCategory: document.querySelector("#journeyFocusCategory"),
   journeyArc: document.querySelector("#journeyArc"),
   journeyFocusName: document.querySelector("#journeyFocusName"),
   journeyFocusBody: document.querySelector("#journeyFocusBody"),
@@ -217,17 +212,12 @@ function renderJourney() {
   const archivedHistory = analysis ? history.filter((entry) => entry.id !== payload.id) : history;
   const focus = analysis?.focusCategory || {};
   elements.journeyUnavailable.hidden = Boolean(analysis);
-  elements.journeyHero.hidden = !analysis;
   if (!analysis) {
     elements.journeyArchiveList.innerHTML = history.length
       ? history.map((entry) => `<details class="journeyArchiveItem"><summary><time>${escapeHtml(entry.date)}</time><strong>${escapeHtml(entry.analysis?.title || "全程阅读心路")}</strong></summary><p>${escapeHtml(entry.analysis?.thesis || "")}</p></details>`).join("")
       : '<p class="journeyEmpty">首次周度分析完成后，这里会出现历史归档。</p>';
     return;
   }
-  elements.journeyTitle.textContent = analysis.title || "全程阅读心路";
-  elements.journeyThesis.textContent = analysis.thesis || "";
-  elements.journeyUpdated.textContent = formatSyncTime(analysis.generatedAt);
-  elements.journeyFocusCategory.textContent = focus.name || payload.focusCategory || "—";
   elements.journeyArc.innerHTML = (analysis.arc || []).map((phase) => `<article class="journeyPhase"><div class="journeyPhaseRail"><span>${escapeHtml(phase.period)}</span><i></i></div><div><h3>${escapeHtml(phase.title)}</h3><p>${escapeHtml(phase.body)}</p>${journeyEvidenceHint(phase.evidenceIds)}</div></article>`).join("") || '<p class="journeyEmpty">目前还没有足够的历史证据形成阶段划分。</p>';
   elements.journeyFocusName.textContent = focus.name || "—";
   elements.journeyFocusBody.textContent = focus.body || "目前还没有足够证据分析这个类别的长期变化。";
