@@ -563,7 +563,21 @@ footer i { font: 12px var(--serif); letter-spacing: .1em; color: var(--forest-2)
 .journeyChapterHeading { display: flex; gap: 16px; align-items: start; margin-bottom: 24px; }
 .journeyChapterHeading h2 { margin: 7px 0 0; color: var(--forest); font: 700 28px/1.2 var(--serif); letter-spacing: -.02em; }
 .journeyChapterHeading p { max-width: 610px; margin: 8px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.75; }
-.chapterIndex { flex: 0 0 auto; padding-top: 3px; color: var(--amber); font: 700 11px var(--serif); letter-spacing: .12em; }
+.chapterIndex {
+  display: inline-flex;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(181, 133, 73, .52);
+  border-radius: 50%;
+  color: var(--forest);
+  background: rgba(248, 241, 224, .72);
+  box-shadow: 0 4px 12px rgba(43, 66, 56, .08);
+  font: 700 15px/1 var(--serif);
+  letter-spacing: .08em;
+}
 .journeyArc { position: relative; padding: 2px 0 2px 124px; }
 .journeyArc::before { content: ""; position: absolute; top: 18px; bottom: 26px; left: 92px; width: 1px; background: linear-gradient(var(--amber), var(--line)); }
 .journeyPhase { position: relative; padding: 0 0 35px; }
@@ -680,6 +694,7 @@ footer i { font: 12px var(--serif); letter-spacing: .1em; color: var(--forest-2)
   .journeyMeta { flex-wrap: wrap; gap: 8px 15px; }
   .journeySection { margin-bottom: 40px; }
   .journeyChapterHeading { gap: 11px; margin-bottom: 18px; }
+  .chapterIndex { flex-basis: 36px; width: 36px; height: 36px; font-size: 13px; }
   .journeyChapterHeading h2 { font-size: 24px; }
   .journeyArc { padding-left: 28px; }
   .journeyArc::before { left: 5px; }
