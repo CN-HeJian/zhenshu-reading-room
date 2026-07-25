@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildAnalysisPrompt, generateJourney, normalizeAnalysis } from "../scripts/analyze-reading-journey.mjs";
+import { buildAnalysisPrompt, generateJourney, normalizeAnalysis, MAX_PROMPT_CHARS } from "../scripts/analyze-reading-journey.mjs";
 
 const fixture = {
   generatedAt: "2026-07-21T15:30:00.000Z",
@@ -23,6 +23,56 @@ test("builds a bounded full-history evidence prompt", () => {
   assert.equal(result.packet.evidence.length, 3);
   assert.match(result.messages[0].content, /不能只总结最近一周/);
   assert.match(result.messages[1].content, /长期主义/);
+});
+
+test("keeps large histories within a fixed prompt budget while preserving anchors", () => {
+  const data = {
+    generatedAt: "2026-07-21T15:30:00.000Z",
+    books: Array.from({ length: 48 }, (_, index) => ({
+      id: `book:${index}`,
+      sourceId: String(index),
+      title: `书籍 ${index}`,
+      author: `作者 ${index}`,
+      category: index % 4 === 0 ? "经济理财" : `类别 ${index % 6}`,
+      progress: index % 101,
+    })),
+    notes: Array.from({ length: 500 }, (_, index) => ({
+      id: `note-${index}`,
+      bookId: String(index % 48),
+      book: `书籍 ${index % 48}`,
+      kind: index % 3 === 0 ? "review" : "highlight",
+      quote: `早期与近期都需要保留的证据 ${index} `.repeat(80),
+      note: `这是一段用于压力测试的长想法 ${index} `.repeat(100),
+      createTime: 1_500_000_000 + index * 86400,
+      chapter: `第 ${index} 章`,
+    })),
+    stats: { overall: { preferCategory: [{ categoryTitle: "经济理财" }] } },
+  };
+  const archives = Array.from({ length: 80 }, (_, index) => ({
+    id: `2020-${String((index % 12) + 1).padStart(2, "0")}-01`,
+    date: `2020-${String((index % 12) + 1).padStart(2, "0")}-01`,
+    analysis: {
+      title: `历史分析 ${index}`,
+      thesis: "历史判断 ".repeat(500),
+      arc: Array.from({ length: 6 }, (_, phase) => ({
+        period: `阶段 ${phase}`,
+        title: `阶段标题 ${phase}`,
+        body: "历史阶段正文 ".repeat(500),
+      })),
+      focusCategory: { name: "经济理财" },
+    },
+  }));
+
+  const result = buildAnalysisPrompt(data, { enduringThemes: [] }, archives);
+  const payload = JSON.parse(result.messages[1].content);
+  const evidenceIds = payload.currentEvidence.evidence.map((item) => item.id);
+  assert.ok(result.meta.promptChars <= MAX_PROMPT_CHARS);
+  assert.ok(result.meta.estimatedPromptTokens > 0);
+  assert.ok(result.meta.evidenceCount <= 60);
+  assert.ok(result.meta.archiveCount <= 24);
+  assert.ok(evidenceIds.includes("note-0"));
+  assert.ok(evidenceIds.includes("note-499"));
+  assert.ok(result.meta.budgetStage > 1);
 });
 
 test("normalizes model output and filters unsupported evidence", () => {
@@ -57,4 +107,5 @@ test("calls DeepSeek with JSON output and returns a lifelong analysis", async ()
   assert.equal(body.model, "deepseek-v4-pro");
   assert.equal(result.analysis.title, "全程变化");
   assert.equal(result.analysis.focusCategory.name, "经济理财");
+  assert.ok(result.meta.promptChars <= MAX_PROMPT_CHARS);
 });

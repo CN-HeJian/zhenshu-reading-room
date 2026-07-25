@@ -9,8 +9,14 @@ const DEFAULT_MEMORY_PATH = join(ROOT, "analysis-history/reading-memory.json");
 const DEFAULT_ARCHIVE_DIR = join(ROOT, "analysis-history");
 const DEFAULT_API_URL = "https://api.deepseek.com";
 const DEFAULT_MODEL = "deepseek-v4-pro";
-const MAX_EVIDENCE = 150;
-const MAX_HISTORY = 120;
+export const MAX_EVIDENCE = 60;
+export const MAX_HISTORY = 24;
+export const MAX_PROMPT_CHARS = 48_000;
+export const PROMPT_CHARS_PER_TOKEN = 3;
+const MAX_EARLY_EVIDENCE = 12;
+const MAX_RECENT_EVIDENCE = 18;
+const MAX_PER_MONTH = 2;
+const MAX_PER_CATEGORY = 3;
 
 const dateFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Shanghai",
@@ -44,22 +50,50 @@ function readJsonIfExists(path, fallback) {
     .catch(() => fallback);
 }
 
+function selectEvenly(items, limit) {
+  if (limit <= 0 || items.length <= limit) return items.slice(0, Math.max(0, limit));
+  const selected = [];
+  const seen = new Set();
+  const step = (items.length - 1) / Math.max(1, limit - 1);
+  for (let index = 0; index < limit; index += 1) {
+    const item = items[Math.round(index * step)];
+    if (item && !seen.has(item.id)) {
+      selected.push(item);
+      seen.add(item.id);
+    }
+  }
+  return selected;
+}
+
+function capEvidenceChronologically(items, limit = MAX_EVIDENCE) {
+  if (items.length <= limit) return items;
+  const early = items.slice(0, Math.min(MAX_EARLY_EVIDENCE, limit));
+  const recentLimit = Math.min(MAX_RECENT_EVIDENCE, Math.max(0, limit - early.length));
+  const recent = recentLimit > 0 ? items.slice(-recentLimit) : [];
+  const anchorIds = new Set([...early, ...recent].map((item) => item.id));
+  const middle = items.filter((item) => !anchorIds.has(item.id));
+  const support = selectEvenly(middle, Math.max(0, limit - early.length - recent.length));
+  return [...new Map([...early, ...support, ...recent].map((item) => [item.id, item])).values()]
+    .sort((left, right) => left.createTime - right.createTime)
+    .slice(0, limit);
+}
+
 function pickNotes(notes, booksById) {
   const normalized = notes
     .filter((note) => note?.createTime && (note.quote || note.note))
     .map((note) => {
       const book = booksById.get(String(note.bookId));
       return {
-        id: String(note.id ?? `${note.bookId}:${note.createTime}:${note.quote}`),
+        id: clampString(note.id ?? `${note.bookId}:${note.createTime}:${note.quote}`, 180),
         date: dateKey(note.createTime),
         month: monthKey(note.createTime),
         kind: note.kind === "highlight" ? "划线" : "想法",
-        book: text(note.book, "未命名书籍"),
-        category: text(book?.category, "未分类"),
-        author: text(book?.author),
-        chapter: text(note.chapter),
-        quote: clampString(note.quote, 520),
-        note: clampString(note.note, 760),
+        book: clampString(text(note.book, "未命名书籍"), 120),
+        category: clampString(text(book?.category, "未分类"), 80),
+        author: clampString(text(book?.author), 100),
+        chapter: clampString(text(note.chapter), 120),
+        quote: clampString(note.quote, 360),
+        note: clampString(note.note, 480),
         weight: Math.min(1200, text(note.quote).length + text(note.note).length * 1.25 + (note.kind === "review" ? 120 : 0)),
         createTime: Number(note.createTime) || 0,
       };
@@ -68,8 +102,8 @@ function pickNotes(notes, booksById) {
 
   const selected = new Map();
   const add = (note) => selected.set(note.id, note);
-  normalized.slice(0, 24).forEach(add);
-  normalized.slice(-48).forEach(add);
+  normalized.slice(0, MAX_EARLY_EVIDENCE).forEach(add);
+  normalized.slice(-MAX_RECENT_EVIDENCE).forEach(add);
 
   const byMonth = new Map();
   const byCategory = new Map();
@@ -79,12 +113,10 @@ function pickNotes(notes, booksById) {
     byMonth.get(note.month).push(note);
     byCategory.get(note.category).push(note);
   });
-  [...byMonth.values()].forEach((items) => items.sort((left, right) => right.weight - left.weight).slice(0, 4).forEach(add));
-  [...byCategory.values()].forEach((items) => items.sort((left, right) => right.weight - left.weight).slice(0, 8).forEach(add));
+  [...byMonth.values()].forEach((items) => items.sort((left, right) => right.weight - left.weight).slice(0, MAX_PER_MONTH).forEach(add));
+  [...byCategory.values()].forEach((items) => items.sort((left, right) => right.weight - left.weight).slice(0, MAX_PER_CATEGORY).forEach(add));
 
-  return [...selected.values()]
-    .sort((left, right) => left.createTime - right.createTime)
-    .slice(-MAX_EVIDENCE)
+  return capEvidenceChronologically([...selected.values()])
     .map((note) => Object.fromEntries(Object.entries(note).filter(([key]) => key !== "weight" && key !== "createTime")));
 }
 
@@ -95,13 +127,13 @@ function buildEvidencePacket(data) {
   const evidence = pickNotes(notes, booksById);
   const categoryBooks = new Map();
   books.forEach((book) => {
-    const category = text(book.category, "未分类");
+    const category = clampString(text(book.category, "未分类"), 80);
     if (!categoryBooks.has(category)) categoryBooks.set(category, []);
     categoryBooks.get(category).push({
-      title: text(book.title, "未命名书籍"),
-      author: text(book.author),
+      title: clampString(text(book.title, "未命名书籍"), 120),
+      author: clampString(text(book.author), 100),
       progress: Number(book.progress) || 0,
-      status: text(book.status),
+      status: clampString(text(book.status), 80),
     });
   });
   const categorySummaries = [...categoryBooks.entries()]
@@ -113,9 +145,9 @@ function buildEvidencePacket(data) {
     }))
     .sort((left, right) => right.books - left.books)
     .slice(0, 24);
-  const preferredCategory = data?.stats?.overall?.preferCategory?.[0]?.categoryTitle
+  const preferredCategory = clampString(data?.stats?.overall?.preferCategory?.[0]?.categoryTitle
     ?? categorySummaries[0]?.category
-    ?? "未分类";
+    ?? "未分类", 80);
   return {
     generatedAt: data?.generatedAt ?? null,
     preferredCategory,
@@ -140,21 +172,92 @@ async function readArchives(archiveDir) {
   return archives.sort((left, right) => String(left.id).localeCompare(String(right.id)));
 }
 
-function buildPromptPayload(packet, memory, archives) {
+function limitEvidenceForPrompt(evidence, limit) {
+  if (evidence.length <= limit) return evidence;
+  const earlyCount = Math.min(MAX_EARLY_EVIDENCE, limit);
+  const recentCount = Math.min(MAX_RECENT_EVIDENCE, Math.max(0, limit - earlyCount));
+  const early = evidence.slice(0, earlyCount);
+  const recent = recentCount > 0 ? evidence.slice(-recentCount) : [];
+  const anchorIds = new Set([...early, ...recent].map((item) => item.id));
+  const middle = evidence.filter((item) => !anchorIds.has(item.id));
+  const support = selectEvenly(middle, Math.max(0, limit - early.length - recent.length));
+  return [...new Map([...early, ...support, ...recent].map((item) => [item.id, item])).values()]
+    .slice(0, limit);
+}
+
+function compactMemory(memory, bodyLength = 320) {
+  const compactPhase = (phase) => ({
+    period: clampString(phase?.period, 80),
+    title: clampString(phase?.title, 120),
+    body: clampString(phase?.body, bodyLength),
+    evidenceIds: Array.isArray(phase?.evidenceIds) ? phase.evidenceIds.map(String).slice(0, 8) : [],
+  });
+  const compactList = (items, limit, itemBodyLength = bodyLength) => (Array.isArray(items) ? items : [])
+    .slice(0, limit)
+    .map((item) => ({
+      title: clampString(item?.title, 120),
+      body: clampString(item?.body, itemBodyLength),
+      evidenceIds: Array.isArray(item?.evidenceIds) ? item.evidenceIds.map(String).slice(0, 8) : [],
+    }))
+    .filter((item) => item.title);
+  const focus = memory?.focusCategory && typeof memory.focusCategory === "object" ? memory.focusCategory : {};
+  return {
+    schemaVersion: memory?.schemaVersion ?? 1,
+    updatedAt: memory?.updatedAt ?? null,
+    arc: (Array.isArray(memory?.arc) ? memory.arc : []).slice(-6).map(compactPhase).filter((item) => item.title && item.body),
+    turningPoints: compactList(memory?.turningPoints, 8, 260),
+    enduringThemes: compactList(memory?.enduringThemes, 8, 260),
+    focusCategory: {
+      name: clampString(focus.name, 100),
+      body: clampString(focus.body, 420),
+      shifts: compactList(focus.shifts, 6, 260),
+      evidenceIds: Array.isArray(focus.evidenceIds) ? focus.evidenceIds.map(String).slice(0, 10) : [],
+    },
+    openQuestions: (Array.isArray(memory?.openQuestions) ? memory.openQuestions : [])
+      .slice(0, 8)
+      .map((question) => clampString(question, 220))
+      .filter(Boolean),
+  };
+}
+
+function compactArchiveSummary(archive, bodyLength = 220) {
+  return {
+    id: archive?.id ?? null,
+    date: archive?.date ?? null,
+    title: clampString(archive?.analysis?.title, 140),
+    thesis: clampString(archive?.analysis?.thesis, bodyLength),
+    arc: (Array.isArray(archive?.analysis?.arc) ? archive.analysis.arc : [])
+      .slice(0, 6)
+      .map((phase) => ({
+        period: clampString(phase?.period, 80),
+        title: clampString(phase?.title, 120),
+        body: clampString(phase?.body, bodyLength),
+      }))
+      .filter((phase) => phase.title && phase.body),
+    focusCategory: clampString(archive?.analysis?.focusCategory?.name ?? archive?.focusCategory, 100),
+  };
+}
+
+function buildPromptPayload(packet, memory, archives, options = {}) {
+  const evidenceLimit = options.evidenceLimit ?? MAX_EVIDENCE;
+  const historyLimit = options.historyLimit ?? MAX_HISTORY;
+  const archiveBodyLength = options.archiveBodyLength ?? 220;
+  const currentEvidence = {
+    ...packet,
+    evidence: limitEvidenceForPrompt(packet.evidence, evidenceLimit),
+  };
+  currentEvidence.periods = [...new Set(currentEvidence.evidence.map((note) => note.month))].map((month) => ({
+    month,
+    noteIds: currentEvidence.evidence.filter((note) => note.month === month).map((note) => note.id).slice(0, 12),
+    categories: [...new Set(currentEvidence.evidence.filter((note) => note.month === month).map((note) => note.category))].slice(0, 8),
+  }));
   return {
     task: "全程阅读心路",
     instruction: "请从最早的阅读记录到现在，重建读者关注点、问题意识和判断方式的变化。不要只总结最近一周，不要把统计数据当成结论。",
     preferredCategory: packet.preferredCategory,
-    longTermMemory: memory,
-    archiveSummaries: archives.slice(-MAX_HISTORY).map((archive) => ({
-      id: archive.id,
-      date: archive.date,
-      title: archive.analysis.title,
-      thesis: archive.analysis.thesis,
-      arc: archive.analysis.arc?.map((phase) => ({ period: phase.period, title: phase.title, body: phase.body })) ?? [],
-      focusCategory: archive.analysis.focusCategory?.name ?? archive.focusCategory,
-    })),
-    currentEvidence: packet,
+    longTermMemory: compactMemory(memory, Math.min(320, archiveBodyLength + 100)),
+    archiveSummaries: archives.slice(-historyLimit).map((archive) => compactArchiveSummary(archive, archiveBodyLength)),
+    currentEvidence,
   };
 }
 
@@ -224,8 +327,31 @@ export function normalizeAnalysis(value, packet, generatedAt = new Date().toISOS
 
 export function buildAnalysisPrompt(data, memory = {}, archives = []) {
   const packet = buildEvidencePacket(data);
-  const payload = buildPromptPayload(packet, memory, archives);
-  return { packet, messages: [{ role: "system", content: SYSTEM_PROMPT }, { role: "user", content: JSON.stringify(payload) }] };
+  const stages = [
+    { evidenceLimit: MAX_EVIDENCE, historyLimit: MAX_HISTORY, archiveBodyLength: 220 },
+    { evidenceLimit: 48, historyLimit: 16, archiveBodyLength: 160 },
+    { evidenceLimit: 36, historyLimit: 8, archiveBodyLength: 100 },
+    { evidenceLimit: 24, historyLimit: 0, archiveBodyLength: 80 },
+  ];
+  for (const stage of stages) {
+    const payload = buildPromptPayload(packet, memory, archives, stage);
+    const messages = [{ role: "system", content: SYSTEM_PROMPT }, { role: "user", content: JSON.stringify(payload) }];
+    const promptChars = messages.reduce((total, message) => total + String(message.content ?? "").length, 0);
+    if (promptChars <= MAX_PROMPT_CHARS) {
+      return {
+        packet,
+        messages,
+        meta: {
+          promptChars,
+          estimatedPromptTokens: Math.ceil(promptChars / PROMPT_CHARS_PER_TOKEN),
+          evidenceCount: payload.currentEvidence.evidence.length,
+          archiveCount: payload.archiveSummaries.length,
+          budgetStage: stages.indexOf(stage) + 1,
+        },
+      };
+    }
+  }
+  throw new Error(`阅读心路上下文仍超出预算（>${MAX_PROMPT_CHARS} 字符），已取消本次 DeepSeek 请求。`);
 }
 
 async function callDeepSeek(apiKey, messages, fetchImpl = fetch, apiUrl = DEFAULT_API_URL, model = DEFAULT_MODEL) {
@@ -259,11 +385,32 @@ function buildMemory(analysis, generatedAt) {
   return {
     schemaVersion: 1,
     updatedAt: generatedAt,
-    arc: analysis.arc.slice(-6),
-    turningPoints: analysis.turningPoints.slice(-10),
-    enduringThemes: analysis.enduringThemes.slice(0, 10),
-    focusCategory: analysis.focusCategory,
-    openQuestions: analysis.openQuestions.slice(0, 10),
+    arc: analysis.arc.slice(-6).map((phase) => ({
+      ...phase,
+      body: clampString(phase.body, 320),
+      evidenceIds: phase.evidenceIds.slice(0, 8),
+    })),
+    turningPoints: analysis.turningPoints.slice(-8).map((item) => ({
+      ...item,
+      body: clampString(item.body, 260),
+      evidenceIds: item.evidenceIds.slice(0, 8),
+    })),
+    enduringThemes: analysis.enduringThemes.slice(0, 8).map((item) => ({
+      ...item,
+      body: clampString(item.body, 260),
+      evidenceIds: item.evidenceIds.slice(0, 8),
+    })),
+    focusCategory: {
+      ...analysis.focusCategory,
+      body: clampString(analysis.focusCategory.body, 420),
+      shifts: analysis.focusCategory.shifts.slice(0, 6).map((item) => ({
+        ...item,
+        body: clampString(item.body, 260),
+        evidenceIds: item.evidenceIds.slice(0, 8),
+      })),
+      evidenceIds: analysis.focusCategory.evidenceIds.slice(0, 10),
+    },
+    openQuestions: analysis.openQuestions.slice(0, 8).map((question) => clampString(question, 220)),
   };
 }
 
@@ -293,11 +440,12 @@ async function writeJourneyOutputs({ data, analysis, memory, archives, date, out
 
 export async function generateJourney({ data, memory = {}, archives = [], apiKey, fetchImpl = fetch, apiUrl = DEFAULT_API_URL, model = DEFAULT_MODEL }) {
   if (!apiKey) throw new Error("DEEPSEEK_API_KEY 未配置。");
-  const { packet, messages } = buildAnalysisPrompt(data, memory, archives);
+  const { packet, messages, meta } = buildAnalysisPrompt(data, memory, archives);
   const rawAnalysis = await callDeepSeek(apiKey, messages, fetchImpl, apiUrl, model);
   const generatedAt = new Date().toISOString();
   return {
     packet,
+    meta,
     analysis: normalizeAnalysis(rawAnalysis, packet, generatedAt),
     memory: null,
   };
@@ -322,7 +470,7 @@ async function main() {
   const date = archiveDate(data);
   const nextMemory = buildMemory(result.analysis, result.analysis.generatedAt);
   await writeJourneyOutputs({ data, analysis: result.analysis, memory: nextMemory, archives, date, outputPath, historyOutputPath, memoryPath, archiveDir });
-  console.log(`已生成全程阅读心路：${date}，历史归档 ${Math.min(MAX_HISTORY, archives.length + 1)} 份，重点类别：${result.analysis.focusCategory.name}`);
+  console.log(`已生成全程阅读心路：${date}，历史归档 ${Math.min(MAX_HISTORY, archives.length + 1)} 份，证据 ${result.meta.evidenceCount} 条，估算输入 ${result.meta.estimatedPromptTokens} tokens（预算阶段 ${result.meta.budgetStage}），重点类别：${result.analysis.focusCategory.name}`);
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
