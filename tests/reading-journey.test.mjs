@@ -36,7 +36,7 @@ test("keeps large histories within a fixed prompt budget while preserving anchor
       category: index % 4 === 0 ? "经济理财" : `类别 ${index % 6}`,
       progress: index % 101,
     })),
-    notes: Array.from({ length: 500 }, (_, index) => ({
+    notes: Array.from({ length: 20_000 }, (_, index) => ({
       id: `note-${index}`,
       bookId: String(index % 48),
       book: `书籍 ${index % 48}`,
@@ -48,7 +48,7 @@ test("keeps large histories within a fixed prompt budget while preserving anchor
     })),
     stats: { overall: { preferCategory: [{ categoryTitle: "经济理财" }] } },
   };
-  const archives = Array.from({ length: 80 }, (_, index) => ({
+  const archives = Array.from({ length: 1_000 }, (_, index) => ({
     id: `2020-${String((index % 12) + 1).padStart(2, "0")}-01`,
     date: `2020-${String((index % 12) + 1).padStart(2, "0")}-01`,
     analysis: {
@@ -71,7 +71,7 @@ test("keeps large histories within a fixed prompt budget while preserving anchor
   assert.ok(result.meta.evidenceCount <= 60);
   assert.ok(result.meta.archiveCount <= 24);
   assert.ok(evidenceIds.includes("note-0"));
-  assert.ok(evidenceIds.includes("note-499"));
+  assert.ok(evidenceIds.includes("note-19999"));
   assert.ok(result.meta.budgetStage > 1);
 });
 

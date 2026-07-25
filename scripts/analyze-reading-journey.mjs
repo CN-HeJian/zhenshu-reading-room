@@ -66,12 +66,13 @@ function selectEvenly(items, limit) {
 }
 
 function capEvidenceChronologically(items, limit = MAX_EVIDENCE) {
-  if (items.length <= limit) return items;
-  const early = items.slice(0, Math.min(MAX_EARLY_EVIDENCE, limit));
+  const ordered = items.slice().sort((left, right) => left.createTime - right.createTime);
+  if (ordered.length <= limit) return ordered;
+  const early = ordered.slice(0, Math.min(MAX_EARLY_EVIDENCE, limit));
   const recentLimit = Math.min(MAX_RECENT_EVIDENCE, Math.max(0, limit - early.length));
-  const recent = recentLimit > 0 ? items.slice(-recentLimit) : [];
+  const recent = recentLimit > 0 ? ordered.slice(-recentLimit) : [];
   const anchorIds = new Set([...early, ...recent].map((item) => item.id));
-  const middle = items.filter((item) => !anchorIds.has(item.id));
+  const middle = ordered.filter((item) => !anchorIds.has(item.id));
   const support = selectEvenly(middle, Math.max(0, limit - early.length - recent.length));
   return [...new Map([...early, ...support, ...recent].map((item) => [item.id, item])).values()]
     .sort((left, right) => left.createTime - right.createTime)
@@ -256,7 +257,8 @@ function buildPromptPayload(packet, memory, archives, options = {}) {
     instruction: "请从最早的阅读记录到现在，重建读者关注点、问题意识和判断方式的变化。不要只总结最近一周，不要把统计数据当成结论。",
     preferredCategory: packet.preferredCategory,
     longTermMemory: compactMemory(memory, Math.min(320, archiveBodyLength + 100)),
-    archiveSummaries: archives.slice(-historyLimit).map((archive) => compactArchiveSummary(archive, archiveBodyLength)),
+    archiveSummaries: (historyLimit > 0 ? archives.slice(-historyLimit) : [])
+      .map((archive) => compactArchiveSummary(archive, archiveBodyLength)),
     currentEvidence,
   };
 }
