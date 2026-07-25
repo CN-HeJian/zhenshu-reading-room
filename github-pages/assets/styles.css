@@ -590,33 +590,6 @@ footer i { font: 12px var(--serif); letter-spacing: .1em; color: var(--forest-2)
 .journeyQuestions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px 38px; margin: 0; padding-left: 20px; color: var(--forest-2); }
 .journeyQuestions li { padding-left: 4px; color: #526159; font: 16px/1.75 var(--serif); }
 .journeyQuestions li::marker { color: var(--amber); }
-.journeyArchiveSection { margin-bottom: 0; }
-.journeyArchiveItem { border-top: 1px solid var(--line-soft); }
-.journeyArchiveItem:first-child { border-top: 0; }
-.journeyArchiveItem summary {
-  display: grid;
-  grid-template-columns: 108px minmax(0, 1fr);
-  gap: 14px;
-  align-items: center;
-  padding: 16px 6px;
-  border-radius: var(--radius-sm);
-  color: var(--forest);
-  cursor: pointer;
-  list-style: none;
-  transition: background .2s ease;
-}
-.journeyArchiveItem summary:hover { background: rgba(219, 229, 217, .3); }
-.journeyArchiveItem summary::-webkit-details-marker { display: none; }
-.journeyArchiveItem summary::after { content: "＋"; justify-self: end; color: var(--amber); }
-.journeyArchiveItem[open] summary::after { content: "－"; }
-.journeyArchiveItem summary time { color: var(--amber); font: 11px var(--serif); }
-.journeyArchiveItem summary strong { font: 700 16px var(--serif); }
-.journeyArchiveItem > p { max-width: 760px; margin: 0 0 14px 122px; color: #526159; font-size: 12.5px; line-height: 1.85; }
-.journeyArchiveArc { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0 0 18px 122px; }
-.journeyArchiveArc div { padding: 9px 10px; border-left: 2px solid var(--sage); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; background: rgba(219, 229, 217, .3); }
-.journeyArchiveArc b, .journeyArchiveArc span { display: block; }
-.journeyArchiveArc b { color: var(--amber); font: 10px var(--serif); }
-.journeyArchiveArc span { margin-top: 4px; color: var(--forest-2); font-size: 10.5px; line-height: 1.5; }
 .journeyEmpty { margin: 16px 0 4px; color: var(--muted); font-size: 12.5px; }
 
 /* ---------- 响应式：平板 ---------- */
@@ -636,7 +609,6 @@ footer i { font: 12px var(--serif); letter-spacing: .1em; color: var(--forest-2)
   .journeyFocusHeader, .journeyReflections { grid-template-columns: 1fr; gap: 18px; }
   .journeyFocusShifts, .journeyQuestions { grid-template-columns: 1fr; }
   .journeyReflectionSection { margin-bottom: 0; }
-  .journeyArchiveArc { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ---------- 响应式：手机 ---------- */
@@ -718,8 +690,6 @@ footer i { font: 12px var(--serif); letter-spacing: .1em; color: var(--forest-2)
   .journeyPhase p, .journeyFocusBody, .journeyFocusShifts p, .journeyThemes p, .journeyTurningPoints p { font-size: 12.5px; line-height: 1.8; }
   .journeyQuestionsSection { padding: 18px 16px 20px; }
   .journeyQuestions li { font-size: 14px; }
-  .journeyArchiveItem summary { grid-template-columns: 78px minmax(0, 1fr); gap: 9px; }
-  .journeyArchiveItem > p, .journeyArchiveArc { margin-left: 87px; }
 }
 
 /* ---------- 减少动态 ---------- */
