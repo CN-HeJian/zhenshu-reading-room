@@ -617,6 +617,13 @@ footer i { font: 12px var(--serif); letter-spacing: .1em; color: var(--forest-2)
   .activityBand { grid-template-columns: 1.4fr repeat(3, 1fr); }
 }
 
+@media (max-width: 900px) {
+  .journeyArc { padding-left: 28px; }
+  .journeyArc::before { left: 5px; }
+  .journeyPhaseRail { position: relative; top: auto; left: auto; width: auto; margin-bottom: 7px; padding-left: 13px; text-align: left; }
+  .journeyPhaseRail i { top: 2px; left: -28px; right: auto; }
+}
+
 @media (max-width: 780px) {
   .journeyView { padding-inline: 24px; }
   .journeyHero { padding-inline: 28px; }
