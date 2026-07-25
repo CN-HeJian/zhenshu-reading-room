@@ -8,6 +8,8 @@ test("GitHub Pages site reads static data and leaves sync controls in GitHub Act
   const styles = await readFile(new URL("../github-pages/assets/styles.css", import.meta.url), "utf8");
   const viewModel = await readFile(new URL("../github-pages/assets/view-model.js", import.meta.url), "utf8");
   const workflow = await readFile(new URL("../.github/workflows/weread-sync.yml", import.meta.url), "utf8");
+  const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
+  const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
   const mainNav = html.match(/<nav class="mainNav"[\s\S]*?<\/nav>/)?.[0] ?? "";
 
   assert.match(html, /assets\/app\.js/);
@@ -43,7 +45,7 @@ test("GitHub Pages site reads static data and leaves sync controls in GitHub Act
   assert.match(viewModel, /Asia\/Shanghai/);
   assert.match(styles, /\.cover\.hasCover \.coverFallback/);
   assert.doesNotMatch(html + app + viewModel + workflow, /\/api\/sync/);
-  assert.doesNotMatch(workflow, /SITES_BASE_URL|SYNC_AUTOMATION_TOKEN|run-weread-sync/);
+  assert.doesNotMatch(html + app + viewModel + workflow, /SITES_BASE_URL|SYNC_AUTOMATION_TOKEN|run-weread-sync|cloudflare|vinext|drizzle/i);
   assert.match(workflow, /actions\/deploy-pages@v4/);
   assert.match(workflow, /WEREAD_API_KEY/);
   assert.match(workflow, /workflow_dispatch/);
@@ -51,4 +53,11 @@ test("GitHub Pages site reads static data and leaves sync controls in GitHub Act
   assert.match(workflow, /15 16 \* \* 0/);
   assert.match(workflow, /DEEPSEEK_API_KEY/);
   assert.match(workflow, /analyze-reading-journey\.mjs/);
+  assert.deepEqual(Object.keys(packageJson.dependencies ?? {}), []);
+  assert.deepEqual(Object.keys(packageJson.devDependencies ?? {}), []);
+  assert.equal(packageJson.scripts["pages:export"], "node scripts/export-weread-data.mjs");
+  assert.equal(packageJson.scripts["journey:analyze"], "node scripts/analyze-reading-journey.mjs");
+  assert.match(readme, /GitHub Actions/);
+  assert.match(readme, /WEREAD_API_KEY/);
+  assert.match(readme, /github-pages\/data/);
 });

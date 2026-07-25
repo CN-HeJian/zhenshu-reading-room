@@ -1,59 +1,112 @@
 # 枕书｜我的阅读札记
 
-这是“枕书”的 GitHub Pages 版本。它不依赖 Codex 自动化、浏览器登录、Sites 私有访问控制、D1 或 Worker 定时器。
+一个由微信读书数据驱动的个人阅读档案，把书架、批注和长期阅读心路整理成一条可以回看的时间线。
 
-GitHub Actions 每天北京时间 23:30 直接调用微信读书网关，生成最新完整数据文件：
+在线访问：[cn-hejian.github.io/zhenshu-reading-room](https://cn-hejian.github.io/zhenshu-reading-room/)
 
-```text
-github-pages/data/reading-room.json
+## 能做什么
+
+- 展示完整书架、封面、作者、分类和阅读进度
+- 按时间浏览划线、想法和点评
+- 用搜索和批注日历定位内容
+- 展示阅读时长、阅读日和阅读足迹
+- 使用 DeepSeek 按周生成长期阅读心路，分析阶段变化、思想转向、长期主题和最爱类别的演化
+- 由 GitHub Actions 每天自动同步，页面只发布已经生成的静态数据
+
+## 数据流
+
+```mermaid
+flowchart LR
+  A[微信读书网关] --> B[GitHub Actions]
+  B --> C[scripts/export-weread-data.mjs]
+  C --> D[github-pages/data/reading-room.json]
+  B -.每周.-> E[scripts/analyze-reading-journey.mjs]
+  E --> F[analysis-history/ 与阅读心路 JSON]
+  D --> G[GitHub Pages]
+  F --> G
 ```
 
-GitHub Pages 发布 `github-pages/` 目录，静态页面读取这份 JSON 展示当前完整书架、阅读进度、划线、想法/点评和阅读统计。每次成功同步都会覆盖最新数据，不保留每日历史归档。
+同步和分析都在 GitHub Actions 中执行。浏览器只读取公开的静态 JSON，不接触任何密钥。
 
-## GitHub 配置
+## 使用自己的数据
 
-1. 把本仓库推到 GitHub。
-2. 在仓库 Settings → Secrets and variables → Actions 中新增 secret：
+### 1. 创建仓库并启用 Pages
 
-```text
-WEREAD_API_KEY
-```
+将仓库推送到 GitHub，在 **Settings → Pages** 中把发布来源设为 **GitHub Actions**。
 
-3. 在仓库 Settings → Pages 中把 Source 设置为 GitHub Actions。
-4. 到 Actions 页面手动运行 `WeRead GitHub Pages sync`，确认第一次同步和发布成功。
+### 2. 配置 Secrets
 
-之后 workflow 会每天 15:30 UTC 自动运行，也就是北京时间 23:30。
+在 **Settings → Secrets and variables → Actions** 中添加：
 
-## 本地命令
+| Secret | 用途 | 必需 |
+| --- | --- | --- |
+| `WEREAD_API_KEY` | 调用微信读书网关并导出阅读数据 | 是 |
+| `DEEPSEEK_API_KEY` | 生成每周阅读心路 | 否 |
+
+### 3. 运行工作流
+
+打开 **Actions → WeRead GitHub Pages sync**，首次选择 **Run workflow**。之后：
+
+- 每天北京时间 23:30 同步书架、批注和阅读统计
+- 每周一北京时间 00:15 生成一次长期阅读心路
+- 也可以在 Actions 页面手动运行工作流
+
+如果没有配置 `DEEPSEEK_API_KEY`，网站仍会正常同步和展示阅读数据，只跳过阅读心路生成。
+
+## 本地开发
+
+要求 Node.js 22.13 或更高版本。
 
 ```bash
 npm install
 npm test
-npm run lint
-npm run build
 ```
 
-本地验证静态页：
+预览 GitHub Pages 静态站：
 
 ```bash
 python3 -m http.server 4173 --directory github-pages
 ```
 
-然后打开 `http://127.0.0.1:4173/`。
+然后打开 <http://127.0.0.1:4173/>。
 
-如果本地环境设置了 `WEREAD_API_KEY`，可以手动导出一次最新数据：
+需要手动导出数据时，在当前 shell 中提供密钥：
 
 ```bash
-npm run pages:export
+WEREAD_API_KEY=你的密钥 npm run pages:export
 ```
 
-## 数据安全
+需要本地生成阅读心路时：
 
-- `WEREAD_API_KEY` 只存 GitHub Actions Secret。
-- 前端页面不会保存或请求微信读书密钥。
-- 同步脚本遇到微信读书 `upgrade_info` 会失败退出，不写入半成品数据。
-- GitHub Pages 静态站不能安全触发即时同步；需要立即同步时手动运行 GitHub Actions workflow。
+```bash
+DEEPSEEK_API_KEY=你的密钥 npm run journey:analyze
+```
 
-## 仍保留的 Sites 代码
+## 目录
 
-仓库中仍保留之前的 Sites/D1 实现，方便回看或回滚旧版本；GitHub Pages workflow 不再调用这些接口。真正用于 GitHub Pages 发布的是 `github-pages/` 和 `scripts/export-weread-data.mjs`。
+```text
+github-pages/                 静态站页面、样式、脚本和发布数据
+lib/weread/core.mjs           微信读书网关请求与数据基础函数
+scripts/export-weread-data.mjs 书架、批注和阅读统计导出
+scripts/analyze-reading-journey.mjs 阅读心路分析与历史记忆
+analysis-history/             阅读心路的长期记忆和历史输入
+tests/                        导出、页面、视图模型和分析测试
+.github/workflows/            定时同步与 Pages 发布
+```
+
+## 数据与安全
+
+- API Key 只保存为 GitHub Actions Secret，不写入源码和前端。
+- 同步脚本采用临时文件和原子替换；请求失败或微信读书要求升级时，不覆盖上一份有效数据。
+- `github-pages/data/` 会随 Pages 公开发布，其中可能包含个人书架、批注和阅读记录。若这些内容不应公开，请不要使用公开仓库或公开 Pages。
+- 本项目不会向微信读书写回内容，也不提供网页端手动同步入口。
+
+## 贡献
+
+欢迎提交 Issue 或 Pull Request。提交前请运行：
+
+```bash
+npm test
+```
+
+当前仓库未声明开源许可证；如需在仓库外复用代码，请先联系作者确认授权范围。

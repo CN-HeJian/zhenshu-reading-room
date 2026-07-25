@@ -9,7 +9,6 @@ on:
       - "lib/weread/**"
       - "scripts/export-weread-data.mjs"
       - "scripts/analyze-reading-journey.mjs"
-      - ".github/reading-journey-baseline.trigger"
       - "tests/**"
       - "github-pages/**"
   schedule:
@@ -42,15 +41,8 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Verify WeRead adapter
-        run: >-
-          node --experimental-strip-types --test
-          tests/weread-core.test.mjs
-          tests/weread-client.test.mjs
-          tests/export-weread-data.test.mjs
-          tests/github-pages-static.test.mjs
-          tests/github-pages-view-model.test.mjs
-          tests/reading-journey.test.mjs
+      - name: Run tests
+        run: npm test
 
       - name: Export latest WeRead data
         env:

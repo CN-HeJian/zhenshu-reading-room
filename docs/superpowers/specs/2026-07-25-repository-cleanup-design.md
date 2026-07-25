@@ -28,7 +28,7 @@ GitHub Pages 静态站
 - `.github/workflows/weread-sync.yml`：定时同步、测试、分析和 GitHub Pages 发布。
 - `analysis-history/`：用于跨周期分析的历史输入和长期记忆。
 - `tests/`：静态站、微信读书适配器、导出和阅读心路分析的有效测试。
-- 仅服务于上述链路的 Node、TypeScript、ESLint 和测试配置。
+- 仅服务于上述链路的 Node 和测试配置。
 
 ## 删除内容
 
@@ -37,7 +37,7 @@ GitHub Pages 静态站
 - `examples/d1/`、`drizzle/`：旧数据库示例和迁移。
 - `scripts/run-weread-sync.mjs` 及仅测试该入口的测试：旧 Sites 手动同步链路。
 - `public/` 中仅属于旧 Vinext 模板的资源；若资源不被 GitHub Pages 引用则一并删除。
-- 不再描述当前架构的历史设计文档；保留与 GitHub Pages、数据导出、适配器和阅读心路有关的文档。
+- 删除历史设计文档；README 作为对外架构和使用说明，当前清理设计作为本次变更的审计记录。
 
 ## README 结构
 
@@ -55,6 +55,6 @@ README 面向公开仓库访客，包含：
 
 - 仓库中不再出现旧 Sites、D1、Worker、Vinext 运行时的源码引用。
 - GitHub Pages workflow 仍能独立运行，不依赖 `.openai/hosting.json` 或旧运行时。
-- `npm install` 后，`npm test`、`npm run lint` 和静态页面构建/验证命令通过。
+- `npm install` 后，`npm test` 和静态页面验证命令通过。
 - README 中的命令、Secret 名称、发布路径与 workflow 实际配置一致。
 - 删除只涉及已确认无效的内容，不改变 GitHub Pages 页面、微信读书导出和阅读心路分析行为。
