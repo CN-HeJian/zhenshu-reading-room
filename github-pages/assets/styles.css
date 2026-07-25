@@ -526,10 +526,6 @@ footer {
   letter-spacing: .08em;
 }
 footer i { font: 12px var(--serif); letter-spacing: .1em; color: var(--forest-2); }
-.visitorStats { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
-.visitorStats small { color: var(--quiet); font-size: 9.5px; }
-.visitorStats .counterapi { min-height: 0; color: var(--forest-2); font-size: 10.5px; letter-spacing: .03em; }
-.visitorStats .counterapi .thecount { color: var(--amber); font-weight: 700; }
 
 /* ---------- 全程阅读心路 ---------- */
 
