@@ -579,10 +579,10 @@ footer i { font: 12px var(--serif); letter-spacing: .1em; color: var(--forest-2)
   letter-spacing: .08em;
 }
 .journeyArc { position: relative; padding: 2px 0 2px 160px; }
-.journeyArc::before { content: ""; position: absolute; top: 18px; bottom: 26px; left: 126px; width: 1px; background: linear-gradient(var(--amber), var(--line)); }
+.journeyArc::before { content: ""; position: absolute; top: 18px; bottom: 26px; left: 132px; width: 1px; background: linear-gradient(var(--amber), var(--line)); }
 .journeyPhase { position: relative; padding: 0 0 35px; }
 .journeyPhase:last-child { padding-bottom: 0; }
-.journeyPhaseRail { position: absolute; top: 3px; left: -160px; width: 132px; color: var(--amber); font: 11.5px/1.35 var(--serif); text-align: right; white-space: nowrap; }
+.journeyPhaseRail { position: absolute; top: 3px; left: -160px; width: 132px; padding-right: 16px; box-sizing: border-box; color: var(--amber); font: 11.5px/1.35 var(--serif); text-align: right; white-space: nowrap; }
 .journeyPhaseRail i { position: absolute; z-index: 1; top: 1px; right: -6px; width: 11px; height: 11px; border: 2px solid var(--amber); border-radius: 50%; background: var(--stone); }
 .journeyPhase h3 { margin: 0 0 10px; color: var(--forest); font: 700 21px/1.35 var(--serif); }
 .journeyPhase p, .journeyFocusBody, .journeyFocusShifts p, .journeyThemes p, .journeyTurningPoints p { margin: 0; color: #526159; font-size: 13px; line-height: 1.9; }
@@ -620,7 +620,7 @@ footer i { font: 12px var(--serif); letter-spacing: .1em; color: var(--forest-2)
 @media (max-width: 900px) {
   .journeyArc { padding-left: 28px; }
   .journeyArc::before { left: 5px; }
-  .journeyPhaseRail { position: relative; top: auto; left: auto; width: auto; margin-bottom: 7px; padding-left: 13px; text-align: left; }
+  .journeyPhaseRail { position: relative; top: auto; left: auto; width: auto; margin-bottom: 7px; padding-left: 13px; padding-right: 0; text-align: left; }
   .journeyPhaseRail i { top: 2px; left: -28px; right: auto; }
 }
 
