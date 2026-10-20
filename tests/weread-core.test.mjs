@@ -17,7 +17,7 @@ test("builds gateway payloads with flat parameters and the installed skill versi
     api_name: "/user/notebooks",
     count: 100,
     lastSort: 123,
-    skill_version: "1.0.4",
+    skill_version: "1.0.5",
   });
 });
 

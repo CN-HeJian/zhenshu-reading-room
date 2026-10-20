@@ -9,6 +9,7 @@ import {
   totalNotebookNotes,
   visibleShelfCount,
   WEREAD_GATEWAY_URL,
+  WEREAD_SKILL_VERSION,
 } from "../lib/weread/core.mjs";
 
 const DEFAULT_OUTPUT = new URL("../github-pages/data/reading-room.json", import.meta.url);
@@ -225,10 +226,16 @@ export class WeReadExporter {
 
       const payload = await response.json();
       if (payload?.upgrade_info) {
-        const message = typeof payload.upgrade_info === "string"
-          ? payload.upgrade_info
-          : payload.upgrade_info.message;
-        throw new ExportError(message || "微信读书 skill 需要升级。", "upgrade_required");
+        const info = typeof payload.upgrade_info === "string"
+          ? { message: payload.upgrade_info }
+          : (payload.upgrade_info ?? {});
+        const targetVersion = info.latest_version ?? info.version;
+        const details = [
+          info.message || "微信读书 skill 需要升级。",
+          targetVersion ? `目标版本：${targetVersion}（当前：${WEREAD_SKILL_VERSION}）` : "",
+          info.upgrade_url ? `升级地址：${info.upgrade_url}` : "",
+        ].filter(Boolean).join(" ");
+        throw new ExportError(details, "upgrade_required");
       }
       if (payload?.errcode && payload.errcode !== 0) {
         throw new ExportError(payload.errmsg || "微信读书返回错误。", `weread_${payload.errcode}`);

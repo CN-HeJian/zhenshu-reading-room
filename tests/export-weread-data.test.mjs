@@ -68,7 +68,7 @@ test("exports complete current WeRead data for GitHub Pages", async () => {
   assert.equal(data.stats.weekly.topTitle, "山月记");
   assert.equal(data.stats.weekly.compare, 0.1);
   assert.deepEqual(bodies[0], buildGatewayBody("/shelf/sync"));
-  assert.equal(bodies.every((body) => body.skill_version === "1.0.4"), true);
+  assert.equal(bodies.every((body) => body.skill_version === "1.0.5"), true);
   assert.equal(bodies.find((body) => body.api_name === "/user/notebooks").count, 100);
   assert.equal(bodies.find((body) => body.api_name === "/review/list/mine").synckey, 0);
 });
@@ -93,9 +93,18 @@ test("does not invent deep links when the API omits them", async () => {
   assert.equal(data.books[0].link, null);
 });
 
-test("stops on WeRead skill upgrade before exporting partial data", async () => {
+test("stops on WeRead skill upgrade and surfaces the upgrade url", async () => {
   const exporter = new WeReadExporter("wrk-test", async () => jsonResponse({
-    upgrade_info: { message: "请升级微信读书 skill" },
+    upgrade_info: {
+      message: "微信读书 Skill 有新版本",
+      latest_version: "1.1.0",
+      upgrade_url: "https://example.test/skill/weread-skill.zip",
+    },
   }));
-  await assert.rejects(() => exporter.exportData(), /升级/);
+  await assert.rejects(
+    () => exporter.exportData(),
+    (error) => /微信读书 Skill 有新版本/.test(error.message)
+      && /1\.1\.0/.test(error.message)
+      && /https:\/\/example\.test\/skill\/weread-skill\.zip/.test(error.message),
+  );
 });
